@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>NOVM - Interactive Cybersecurity Lab Platform</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root{
+            --primary:#0f172a; --secondary:#1e293b; --accent:#06b6d4; --accent-glow:rgba(6,182,212,0.3);
+            --success:#10b981; --danger:#ef4444; --warning:#f59e0b;
+            --text-primary:#f1f5f9; --text-secondary:#cbd5e1; --border:#334155;
+        }
+        html,body{height:100%;width:100%;overflow:hidden}
+        body{
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            background: linear-gradient(135deg,var(--primary) 0%, #0a0e27 100%);
+            color:var(--text-primary); line-height:1.6;
+        }
+        .container{display:flex;height:100vh;gap:0}
+        .sidebar{width:320px;background:var(--secondary);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px;overflow-y:auto;box-shadow:inset -10px 0 20px rgba(0,0,0,.3)}
+        .logo{font-size:24px;font-weight:bold;margin-bottom:30px;background:linear-gradient(135deg,var(--accent),#06d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;text-transform:uppercase;text-align:center}
+        .section-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);margin-top:25px;margin-bottom:12px;font-weight:600}
+        .difficulty-selector,.topic-selector{display:flex;flex-direction:column;gap:8px}
+        .os-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+        .btn{padding:10px 14px;border:1px solid var(--border);background:transparent;color:var(--text-primary);cursor:pointer;border-radius:4px;font-family:inherit;font-size:12px;transition:all .3s;text-transform:uppercase;letter-spacing:.5px;font-weight:500}
+        .btn:hover{border-color:var(--accent);background:rgba(6,182,212,.08);box-shadow:0 0 10px var(--accent-glow)}
+        .btn.active{background:var(--accent);color:var(--primary);border-color:var(--accent);box-shadow:0 0 20px var(--accent-glow)}
+        .btn-primary{margin-top:20px;background:var(--accent);color:var(--primary);border:none;font-weight:bold;padding:12px;font-size:13px}
+        .btn-primary:hover{background:#00a4cc;box-shadow:0 0 25px var(--accent-glow)}
+        .progress-section{margin-top:30px;padding:15px;background:rgba(6,182,212,.05);border:1px solid var(--border);border-radius:4px}
+        .progress-bar{width:100%;height:8px;background:var(--secondary);border-radius:2px;margin-top:8px;overflow:hidden;border:1px solid var(--border)}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--success));transition:width .5s ease}
+        .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px;font-size:11px}
+        .stat-item{padding:8px;background:rgba(15,23,42,.5);border:1px solid var(--border);border-radius:4px;text-align:center}
+        .stat-value{font-size:16px;font-weight:bold;color:var(--accent)}
+        .main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+        .header{background:var(--secondary);border-bottom:1px solid var(--border);padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+        .header-title{font-size:18px;font-weight:bold;color:var(--accent);margin-bottom:5px}
+        .header-subtitle{font-size:12px;color:var(--text-secondary)}
+        .terminal-container{flex:1;display:flex;flex-direction:column;overflow:hidden}
+        .terminal{flex:1;background:var(--primary);padding:20px;overflow-y:auto;font-size:13px;border:1px solid var(--border);margin:20px;margin-bottom:0;border-radius:4px;box-shadow:inset 0 2px 10px rgba(0,0,0,.5)}
+        .terminal-line{margin-bottom:8px;word-wrap:break-word;animation:slideIn .3s ease-out}
+        @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+        .prompt{color:var(--accent);font-weight:bold}.command{color:var(--text-primary);margin-left:5px}.output{color:var(--text-secondary);margin-left:0}.error{color:var(--danger)}.success{color:var(--success)}.info{color:var(--warning)}
+        .hint{background:rgba(245,158,11,.1);border-left:3px solid var(--warning);padding:10px 12px;margin:10px 0;color:var(--warning);border-radius:2px}
+        .input-area{padding:20px;background:var(--secondary);border-top:1px solid var(--border);display:flex;gap:10px}
+        .input-wrapper{flex:1;display:flex;align-items:center;background:var(--primary);border:1px solid var(--border);border-radius:4px;padding:0 12px}
+        .input-wrapper.active{border-color:var(--accent);box-shadow:0 0 15px var(--accent-glow)}
+        .prompt-symbol{color:var(--accent);margin-right:8px;font-weight:bold}
+        input[type="text"]{flex:1;background:transparent;border:none;color:var(--text-primary);font-family:inherit;font-size:13px;outline:none;padding:10px 0}
+        input[type="text"]::placeholder{color:var(--text-secondary)}
+        .btn-submit{padding:10px 20px;background:var(--accent);color:var(--primary);border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-weight:bold;transition:all .3s}
+        .btn-submit:hover{background:#00a4cc;box-shadow:0 0 20px var(--accent-glow)}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);justify-content:center;align-items:center;z-index:1000;backdrop-filter:blur(4px)}
+        .modal.active{display:flex}.modal-content{background:var(--secondary);padding:30px;border-radius:6px;border:1px solid var(--border);max-width:500px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+        .modal-title{font-size:20px;color:var(--accent);margin-bottom:15px;font-weight:bold}.modal-text{color:var(--text-secondary);margin-bottom:20px;line-height:1.8}
+        .modal-buttons{display:flex;gap:10px}.hidden{display:none}
+        ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:var(--primary)} ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px} ::-webkit-scrollbar-thumb:hover{background:#00a4cc}
+        .loading{display:inline-block;color:var(--accent)} .loading::after{content:'.';animation:dots 1.5s steps(4,end) infinite}
+        @keyframes dots{0%,20%{content:'.'}40%{content:'..'}60%{content:'...'}80%,100%{content:''}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">NOVM</div>
+
+            <div>
+                <div class="section-title">Operating System</div>
+                <div class="os-selector">
+                    <button class="btn active" data-os="linux">🐧 Linux</button>
+                    <button class="btn" data-os="windows">🪟 Windows</button>
+                    <button class="btn" data-os="macos">🍎 macOS</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Difficulty</div>
+                <div class="difficulty-selector">
+                    <button class="btn active" data-difficulty="beginner">Beginner</button>
+                    <button class="btn" data-difficulty="intermediate">Intermediate</button>
+                    <button class="btn" data-difficulty="advanced">Advanced</button>
+                    <button class="btn" data-difficulty="expert">Expert</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Topic</div>
+                <div class="topic-selector">
+                    <button class="btn active" data-topic="web">Web Security</button>
+                    <button class="btn" data-topic="network">Network Penetration</button>
+                    <button class="btn" data-topic="privilege">Privilege Escalation</button>
+                    <button class="btn" data-topic="postex">Post-Exploitation</button>
+                    <button class="btn" data-topic="crypto">Cryptography</button>
+                </div>
+            </div>
+
+            <div id="startMachineSection" class="hidden">
+                <button class="btn btn-primary" id="startMachineBtn">🖥️ Start Machine</button>
+            </div>
+
+            <div class="progress-section hidden" id="progressSection">
+                <div class="section-title">Progress</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                </div>
+                <div style="margin-top:8px;font-size:11px;color:var(--text-secondary);">
+                    Stage <span id="currentStage">0</span> / <span id="totalStages">8</span>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div style="color:var(--text-secondary)">Time</div>
+                        <div class="stat-value" id="elapsed">0:00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div style="color:var(--text-secondary)">Commands</div>
+                        <div class="stat-value" id="cmdCount">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <div class="header">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div>
+                        <div class="header-title" id="headerTitle">Welcome to NOVM</div>
+                        <div class="header-subtitle" id="headerSubtitle">Select OS, difficulty, and topic to start</div>
+                    </div>
+                    <button class="btn" id="settingsBtn" style="padding:8px 12px;font-size:11px">⚙️ Settings</button>
+                </div>
+            </div>
+
+            <div class="terminal-container">
+                <div class="terminal" id="terminal">
+                    <div class="terminal-line" style="color:var(--accent)">Welcome to NOVM - Interactive Cybersecurity Lab</div>
+                    <div class="terminal-line" style="color:var(--text-secondary)">Select your difficulty and topic from the left panel</div>
+                    <div class="terminal-line" style="color:var(--text-secondary);margin-top:15px">Type commands as if you're on a real system. Each scenario builds progressively.</div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-wrapper" id="inputWrapper">
+                        <span class="prompt-symbol">$</span>
+                        <input type="text" id="commandInput" placeholder="Enter command..." disabled />
+                    </div>
+                    <button class="btn-submit" id="submitBtn" disabled>Execute</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-title">⚙️ Settings</div>
+            <div class="modal-text" style="font-size:12px;margin-bottom:15px">
+                Enter your Hugging Face API token to enable AI scenario generation.
+                <br /><br />
+                Get your token at: <strong>https://huggingface.co/settings/tokens</strong>
+            </div>
+            <input type="password" id="hfTokenInput" placeholder="Enter HF_TOKEN..." style="width:100%;padding:10px;margin-bottom:15px;background:var(--primary);border:1px solid var(--border);color:var(--text-primary);border-radius:4px;font-family:inherit" />
+            <div class="modal-buttons">
+                <button class="btn" style="flex:1;" onclick="closeSettings()">Cancel</button>
+                <button class="btn btn-primary" style="flex:1;" id="saveTokenBtn">Save Token</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HINT MODAL -->
+    <div class="modal" id="hintModal">
+        <div class="modal-content">
+            <div class="modal-title">💡 Hint</div>
+            <div class="modal-text" id="hintText"></div>
+            <div class="modal-buttons">
+                <button class="btn" style="flex:1;" onclick="closeHint()">Close</button>
+                <button class="btn btn-primary" style="flex:1;" onclick="nextHint()">Next Hint</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- VICTORY MODAL -->
+    <div class="modal" id="victoryModal">
+        <div class="modal-content">
+            <div class="modal-title">🎉 Scenario Complete!</div>
+            <div class="modal-text" id="victoryText"></div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" style="flex:1;" onclick="location.reload()">New Scenario</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const TOPIC_MAP = {
+        'web': 'web_security',
+        'network': 'network_penetration',
+        'privilege': 'privilege_escalation',
+        'postex': 'post_exploitation',
+        'crypto': 'cryptography'
+    };
+
+    function stagesForDifficulty(d) {
+        switch (d) {
+            case 'beginner': return 3;
+            case 'intermediate': return 4;
+            case 'advanced': return 5;
+            case 'expert': return 6;
+            default: return 4;
+        }
+    }
+
+    function sanitizeModelText(raw) {
+        if (!raw) return '';
+        let t = String(raw);
+        t = t.replace(/```[\s\S]*?```/g, match => match.replace(/```/g, ''));
+        t = t.replace(/`/g, '');
+        if (t.length > 18000) t = t.slice(0, 18000);
+        return t;
+    }
+
+    function buildAIPrompt(difficulty, topic, os) {
+        const normalizedTopic = TOPIC_MAP[topic] || topic;
+        const numberOfStages = stagesForDifficulty(difficulty);
+
+        return `You are an expert cybersecurity training scenario generator. Create an interactive, educational cybersecurity challenge scenario.
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.x.x",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "objective": "Objective",
+      "expectedCommands": ["cmd1", "cmd2"],
+      "commandVariations": [{"command": "tool", "variations": ["alt1"], "description": "desc"}],
+      "hints": ["hint1", "hint2", "hint3"],
+      "commonMistakes": ["mistake1"],
+      "output": "expected output",
+      "successCriteria": "success text",
+      "securityImplications": "implications",
+      "nextStageSummary": "next stage"
+    }
+  ],
+  "metadata": {
+    "estimatedDuration": "time",
+    "prerequisites": ["prereq"],
+    "learningOutcomes": ["outcome"],
+    "realWorldApplicability": "applicability"
+  }
+}
+
+Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normalizedTopic}. Make it realistic and educational.`;
+    }
+
+    const CF_BASE = "https://noovm.uthnote.workers.dev";
+
+    let state = {
+        difficulty: 'beginner',
+        topic: 'web',
+        os: 'linux',
+        scenario: null,
+        currentStage: 0,
+        commandCount: 0,
+        startTime: null,
+        active: false,
+        completedStages: [],
+        hints: [],
+        currentHintIndex: 0,
+        isAIGenerated: false,
+        isFallback: false
+    };
+
+    const fallbackScenario = {
+        title: 'SQL Injection Basics',
+        description: 'Learn SQL injection fundamentals via a vulnerable search endpoint',
+        osType: 'linux',
+        difficulty: 'beginner',
+        topic: 'web_security',
+        numberOfStages: 3,
+        scenarioBackground: 'Target is a small internal web app with a search page vulnerable to SQLi.',
+        targetIP: '192.168.56.101',
+        stages: [
+            {
+                stageNumber: 1,
+                name: 'Discovery',
+                objective: 'Find the web service and confirm reachable port',
+                expectedCommands: ['curl http://192.168.56.101:8080', 'wget http://192.168.56.101:8080', 'curl http://192.168.56.101:8080/'],
+                commandVariations: [
+                    { command: 'curl', variations: ['wget', 'curl -I', 'curl -v'], description: 'basic HTTP retrieval' }
+                ],
+                hints: ['Use curl/wget to fetch root page on port 8080', 'Look for HTML forms indicating search/login endpoints', 'Try curl -I to inspect headers'],
+                commonMistakes: ['Missing port in URL', 'Typing http instead of http://', 'Not quoting URLs with special chars'],
+                output: 'HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html>\n  <title>Search Portal</title>\n  <form action="/search.php" method="GET">\n    <input name="q" placeholder="search">\n    <button type="submit">Search</button>\n  </form>\n</html>',
+                successCriteria: 'Search Portal',
+                securityImplications: 'Exposed search parameter could be injectable; inputs must be sanitized and parameterized.',
+                nextStageSummary: 'Search form accepts q parameter — test reflection and DB behavior.'
+            },
+            {
+                stageNumber: 2,
+                name: 'Parameter Discovery',
+                objective: 'Confirm the search parameter reflects input and may be vulnerable',
+                expectedCommands: ['curl "http://192.168.56.101:8080/search.php?q=test"', 'curl http://192.168.56.101:8080/search.php?q=test'],
+                commandVariations: [
+                    { command: 'curl "http://.../search.php?q=test"', variations: ['wget "http://.../search.php?q=test"', 'curl -G -d q=test'], description: 'invoke search endpoint' }
+                ],
+                hints: ['Send a test query and check response for echoed input', 'If input is echoed, attempt SQL payloads next', 'Use -G or URL encoding if shell interferes'],
+                commonMistakes: ['Not quoting URLs', 'Forgetting to URL-encode special chars'],
+                output: 'Search results for: test\nNo results found.',
+                successCriteria: 'Search results for:',
+                securityImplications: 'Reflected input suggests server-side uses input unsafely; sanitization missing.',
+                nextStageSummary: 'Try a simple SQL injection payload to trigger an error or bypass.'
+            },
+            {
+                stageNumber: 3,
+                name: 'SQL Injection Test',
+                objective: 'Use a simple payload to confirm SQL injection',
+                expectedCommands: ["curl 'http://192.168.56.101:8080/search.php?q=\' OR \'1\'=\'1'", 'curl "http://192.168.56.101:8080/search.php?q=\' OR \'1\'=\'1"'],
+                commandVariations: [
+                    { command: "' OR '1'='1", variations: ["\' OR \'1\'=\'1\'", "%27+OR+%271%27%3D%271"], description: 'boolean bypass payload' }
+                ],
+                hints: ['Try classic OR 1=1 payload', 'Watch for SQL errors or unexpected results', 'If quotes break, try URL-encoding'],
+                commonMistakes: ['Not escaping quotes on shell', 'Using wrong URL encoding'],
+                output: "SQL Error: syntax error near 'OR'\nQuery: SELECT * FROM items WHERE name=' OR '1'='1'\nDatabase: MySQL 5.7.20",
+                successCriteria: 'SQL Error',
+                securityImplications: 'Successful injection can lead to data disclosure or authentication bypass.',
+                nextStageSummary: 'If confirmed, consider extraction in a controlled advanced scenario.'
+            }
+        ],
+        metadata: {
+            estimatedDuration: '20-30 minutes',
+            prerequisites: ['basic shell usage', 'HTTP fundamentals'],
+            learningOutcomes: ['Recognize reflected input', 'Test simple SQLi payloads'],
+            realWorldApplicability: 'Maps to many legacy webapps exposing unsanitized inputs.'
+        }
+    };
+
+    function addTerminalLine(type, content) {
+        const terminal = document.getElementById('terminal');
+        const line = document.createElement('div');
+        line.className = `terminal-line ${type}`;
+        line.innerHTML = content;
+        terminal.appendChild(line);
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function delay(ms){ return new Promise(res=>setTimeout(res, ms)); }
+
+    async function verifyTokenWithWorker(token){
+        try {
+            const resp = await fetch(`${CF_BASE}/api/verify-token`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ token })
+            });
+            const data = await resp.json().catch(()=>({}));
+            if (!resp.ok) {
+                const msg = data.message || `HTTP ${resp.status}`;
+                throw new Error(msg);
+            }
+            return { ok: true, username: data.username || 'unknown' };
+        } catch (err) {
+            return { ok: false, error: err.message || String(err) };
+        }
+    }
+
+    function extractAndValidateJSON(rawText) {
+        if (!rawText) return null;
+
+        let jsonStr = null;
+        const firstBrace = rawText.indexOf('{');
+        const lastBrace = rawText.lastIndexOf('}');
+        
+        if (firstBrace !== -1 && lastBrace !== -1 && firstBrace < lastBrace) {
+            jsonStr = rawText.substring(firstBrace, lastBrace + 1);
+        }
+
+        if (!jsonStr) return null;
+
+        try {
+            const parsed = JSON.parse(jsonStr);
+            
+            if (!parsed.title) {
+                parsed.title = 'Generated Scenario';
+            }
+            if (!parsed.stages || !Array.isArray(parsed.stages)) {
+                return null;
+            }
+            if (parsed.stages.length === 0) {
+                return null;
+            }
+
+            return parsed;
+        } catch (err) {
+            addTerminalLine('error', `[!] JSON parse error: ${err.message}`);
+            return null;
+        }
+    }
+
+    async function generateAIScenario() {
+        try {
+            addTerminalLine('info', '[*] Generating AI-powered scenario...');
+            addTerminalLine('info', '[*] Sending request to generation service...');
+
+            const token = localStorage.getItem('hf_token');
+            if (!token) throw new Error('No API token configured. Click ⚙️ Settings to add your HF_TOKEN');
+
+            const prompt = buildAIPrompt(state.difficulty, state.topic, state.os);
+            
+            const payload = {
+                model: "openai/gpt-oss-120b:novita",
+                messages: [
+                    { role: "user", content: prompt }
+                ],
+                max_tokens: 3500,
+                temperature: 0.2
+            };
+
+            const resp = await fetch(`${CF_BASE}/api/generate-scenario`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ token, payload })
+            });
+
+            const data = await resp.json().catch(()=>({}));
+
+            if (!resp.ok || data.error) {
+                const errMsg = data.message || `HTTP ${resp.status}`;
+                addTerminalLine('error', `[!] Generation service error: ${errMsg}`);
+                throw new Error(errMsg);
+            }
+
+            addTerminalLine('success', '[✓] Received response from generation service');
+
+            let rawText = null;
+            if (Array.isArray(data.choices) && data.choices.length > 0) {
+                const first = data.choices[0];
+                if (first.message && typeof first.message.content === 'string') rawText = first.message.content;
+                else if (typeof first.text === 'string') rawText = first.text;
+            }
+
+            if (!rawText) {
+                addTerminalLine('error', '[!] Could not locate textual content in model response');
+                throw new Error('No model content found');
+            }
+
+            rawText = sanitizeModelText(rawText);
+            addTerminalLine('info', '[*] Parsing JSON response from model...');
+
+            const scenarioData = extractAndValidateJSON(rawText);
+            
+            if (!scenarioData) {
+                addTerminalLine('error', '[!] Failed to extract valid scenario from model output');
+                throw new Error('Invalid scenario structure');
+            }
+
+            scenarioData.stages = scenarioData.stages.map((stage, idx) => {
+                const s = Object.assign({}, stage);
+                s.stageNumber = s.stageNumber || (idx + 1);
+                s.name = s.name || `Stage ${idx + 1}`;
+                s.objective = s.objective || 'Complete this stage';
+                s.expectedCommands = Array.isArray(s.expectedCommands) ? s.expectedCommands : [s.expectedCommands || ''];
+                s.commandVariations = Array.isArray(s.commandVariations) ? s.commandVariations : [];
+                s.hints = Array.isArray(s.hints) ? s.hints : (s.hints ? [s.hints] : []);
+                while (s.hints.length < 3) s.hints.push('No more hints available for this stage.');
+                s.commonMistakes = Array.isArray(s.commonMistakes) ? s.commonMistakes : [];
+                s.output = s.output || s.response || 'Command executed successfully.';
+                s.successCriteria = s.successCriteria || '';
+                s.securityImplications = s.securityImplications || '';
+                s.nextStageSummary = s.nextStageSummary || s.nextStageHint || '';
+                return s;
+            });
+
+            scenarioData.osType = (scenarioData.osType || state.os).toLowerCase();
+
+            state.scenario = scenarioData;
+            state.isAIGenerated = true;
+            state.isFallback = false;
+            addTerminalLine('success', '[✓] AI scenario generated and loaded');
+            addTerminalLine('success', `[✓] Scenario: ${scenarioData.title}`);
+            addTerminalLine('success', `[✓] Stages: ${scenarioData.stages.length}`);
+            return true;
+        } catch (err) {
+            addTerminalLine('error', `[!] AI generation failed: ${err.message || err}`);
+            addTerminalLine('info', '[*] Will attempt fallback to local template scenario');
+            return false;
+        }
+    }
+
+    function normalizeCommand(cmd) {
+        return cmd
+            .toLowerCase()
+            .replace(/["'`]/g, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    function commandKeywords(cmd) {
+        return normalizeCommand(cmd).split(' ').filter(w => w.length >= 2);
+    }
+
+    function commandMatches(userCommand, expectedCommand, difficulty) {
+        const u = normalizeCommand(userCommand);
+        const e = normalizeCommand(expectedCommand);
+
+        if (difficulty === 'beginner') {
+            return u === e || u.startsWith(e + ' ') || u.startsWith(e + '/');
+        }
+
+        if (difficulty === 'intermediate') {
+            if (u === e) return true;
+            const uparts = u.split(' ');
+            const eparts = e.split(' ');
+            let prefixMatch = true;
+            for (let i=0;i<eparts.length;i++){
+                if (uparts[i] !== eparts[i]) { prefixMatch = false; break; }
+            }
+            if (prefixMatch) return true;
+            return commandKeywords(e).every(k => uparts.includes(k));
+        }
+
+        const ukeys = new Set(commandKeywords(u));
+        const ekeys = commandKeywords(e);
+        const required = ekeys.filter(k => !['-p','--port'].includes(k));
+        const allPresent = required.every(k => ukeys.has(k));
+        if (allPresent) return true;
+
+        return u.includes(e) || e.includes(u);
+    }
+
+    function findClosestVariation(userCmd, stage) {
+        const u = normalizeCommand(userCmd);
+        for (const v of stage.commandVariations || []) {
+            const base = normalizeCommand(v.command);
+            if (u.includes(base.split(' ')[0])) return v;
+            for (const alt of v.variations || []) {
+                if (u.includes(normalizeCommand(alt))) return v;
+            }
+        }
+        for (const expected of stage.expectedCommands || []) {
+            const base = normalizeCommand(expected).split(' ')[0];
+            if (u.includes(base)) return { command: base, variations: [], description: 'matches tool' };
+        }
+        return null;
+    }
+
+    function executeCommand() {
+        const input = document.getElementById('commandInput');
+        const command = input.value.trim();
+        if (!command) return;
+
+        addTerminalLine('', `<span class="prompt">$</span><span class="command">${escapeHtml(command)}</span>`);
+        state.commandCount++;
+        document.getElementById('cmdCount').textContent = state.commandCount;
+
+        const stage = state.scenario.stages[state.currentStage];
+        const expectedCommands = stage.expectedCommands || [];
+
+        const isCorrect = expectedCommands.some(exp => commandMatches(command, exp, state.difficulty)) ||
+                          (stage.commandVariations || []).some(cv => {
+                              if (commandMatches(command, cv.command, state.difficulty)) return true;
+                              return (cv.variations || []).some(v => commandMatches(command, v, state.difficulty));
+                          });
+
+        if (isCorrect) {
+            const output = stage.output || '';
+            addTerminalLine('output', `<pre style="white-space:pre-wrap">${escapeHtml(output)}</pre>`);
+
+            addTerminalLine('success', '✓ Correct!');
+            if (stage.securityImplications) addTerminalLine('info', `<strong>Security:</strong> ${escapeHtml(stage.securityImplications)}`);
+            if (stage.commonMistakes && stage.commonMistakes.length > 0) addTerminalLine('info', `<strong>Common Mistakes:</strong> ${escapeHtml(stage.commonMistakes.join('; '))}`);
+
+            state.completedStages.push(state.currentStage);
+            state.currentStage++;
+            setTimeout(()=>{
+                if (state.currentStage < state.scenario.stages.length) {
+                    addTerminalLine('', '');
+                    const next = state.scenario.stages[state.currentStage];
+                    if (next && next.nextStageSummary) addTerminalLine('info', `Next: ${escapeHtml(next.nextStageSummary)}`);
+                    showCurrentStage();
+                } else {
+                    completeScenario();
+                }
+            }, 900);
+        } else {
+            const close = findClosestVariation(command, stage);
+            if (close) {
+                addTerminalLine('error', `Command not recognized or incorrect. Tool looks correct (${escapeHtml(close.command)}). Try variants: ${escapeHtml((close.variations||[]).slice(0,3).join(', ') || close.description || '')}`);
+            } else {
+                addTerminalLine('error', 'Command not recognized or incorrect. Try again or type "hint" for guidance.');
+            }
+            if (stage.hints && stage.hints.length > 0) {
+                addTerminalLine('info', 'Type "hint" for guidance');
+            }
+        }
+        input.value = '';
+    }
+
+    async function startScenario() {
+        document.getElementById('commandInput').disabled = true;
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('terminal').innerHTML = '';
+
+        addTerminalLine('info', '[*] NOVM Lab Machine Starting...');
+        addTerminalLine('info', `[*] OS: ${state.os.toUpperCase()}`);
+        addTerminalLine('info', '[*] Initializing virtual environment...');
+        await delay(300);
+
+        const aiOk = await generateAIScenario();
+
+        if (!aiOk) {
+            if (fallbackScenario && fallbackScenario.stages) {
+                state.scenario = JSON.parse(JSON.stringify(fallbackScenario));
+                state.isAIGenerated = false;
+                state.isFallback = true;
+                addTerminalLine('success', '[✓] Fallback template scenario loaded');
+            } else {
+                addTerminalLine('error', '[!] No fallback scenario available - cannot start');
+                document.getElementById('commandInput').disabled = false;
+                document.getElementById('submitBtn').disabled = false;
+                return;
+            }
+        }
+
+        state.currentStage = 0;
+        state.commandCount = 0;
+        state.completedStages = [];
+        state.startTime = Date.now();
+        state.active = true;
+
+        document.getElementById('commandInput').disabled = false;
+        document.getElementById('submitBtn').disabled = false;
+        document.getElementById('inputWrapper').classList.add('active');
+
+        setTimeout(()=>{
+            addTerminalLine('success', '[✓] System online');
+            addTerminalLine('success', '[✓] Ready for exploitation');
+            addTerminalLine('', '');
+            updateHeader();
+            showCurrentStage();
+            document.getElementById('commandInput').focus();
+        }, 700);
+    }
+
+    function showCurrentStage() {
+        if (!state.scenario) {
+            addTerminalLine('error', '[!] No scenario loaded');
+            return;
+        }
+        if (state.currentStage >= state.scenario.stages.length) {
+            completeScenario();
+            return;
+        }
+        const stage = state.scenario.stages[state.currentStage];
+        addTerminalLine('info', `[Stage ${state.currentStage + 1}/${state.scenario.stages.length}] ${stage.name}`);
+        addTerminalLine('info', `Objective: ${stage.objective}`);
+        addTerminalLine('info', `Hints available: ${stage.hints.length}. Type 'hint' to view.`);
+        const tools = (stage.commandVariations || []).map(cv => cv.command.split(' ')[0]).filter(Boolean);
+        if (tools.length) addTerminalLine('info', `Tools: ${escapeHtml([...new Set(tools)].join(', '))}`);
+        state.hints = Array.isArray(stage.hints) ? stage.hints : (stage.hints ? [stage.hints] : []);
+        state.currentHintIndex = 0;
+        updateHeader();
+    }
+
+    function updateHeader() {
+        if (!state.scenario) return;
+        const stage = state.scenario.stages[Math.min(state.currentStage, state.scenario.stages.length-1)];
+        document.getElementById('headerTitle').textContent = state.scenario ? `Stage ${state.currentStage + 1}: ${stage.name}` : 'NOVM';
+        document.getElementById('headerSubtitle').textContent = stage.objective || '';
+        document.getElementById('currentStage').textContent = state.currentStage + 1;
+        document.getElementById('totalStages').textContent = state.scenario.stages.length;
+        const progress = Math.round((state.currentStage / state.scenario.stages.length) * 100);
+        document.getElementById('progressFill').style.width = progress + '%';
+    }
+
+    function completeScenario() {
+        state.active = false;
+        const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+        const minutes = Math.floor(elapsed/60);
+        const seconds = elapsed % 60;
+        const efficiency = state.commandCount > 0 ? Math.round((state.scenario.stages.length / state.commandCount) * 100) : 100;
+
+        const outcomes = (state.scenario.metadata && state.scenario.metadata.learningOutcomes) ? state.scenario.metadata.learningOutcomes.join(', ') : 'Learned concepts';
+        const victoryText = `
+<strong>Scenario: ${escapeHtml(state.scenario.title || 'Untitled')}</strong>
+<br><br>
+You successfully completed all ${state.scenario.stages.length} stages!
+<br><br>
+<strong>Statistics:</strong>
+<br>Time: ${minutes}:${seconds.toString().padStart(2,'0')}
+<br>Commands used: ${state.commandCount}
+<br>Efficiency: ${efficiency}%
+<br><br>
+<strong>Learning outcomes:</strong> ${escapeHtml(outcomes)}
+<br><br>
+<strong>FLAG: SCENARIO_COMPLETE</strong>
+`;
+        document.getElementById('victoryText').innerHTML = victoryText;
+        document.getElementById('victoryModal').classList.add('active');
+        document.getElementById('commandInput').disabled = true;
+        document.getElementById('inputWrapper').classList.remove('active');
+    }
+
+    function showHint() {
+        if (!state.hints || state.hints.length === 0) {
+            addTerminalLine('info', 'No hints available for this stage');
+            return;
+        }
+        if (state.currentHintIndex >= state.hints.length) state.currentHintIndex = 0;
+        const hint = state.hints[state.currentHintIndex];
+        document.getElementById('hintText').textContent = hint;
+        document.getElementById('hintModal').classList.add('active');
+    }
+
+    function closeHint() {
+        document.getElementById('hintModal').classList.remove('active');
+    }
+
+    function nextHint() {
+        state.currentHintIndex++;
+        if (!state.hints || state.currentHintIndex >= state.hints.length) {
+            document.getElementById('hintText').textContent = 'No more hints available';
+        } else {
+            document.getElementById('hintText').textContent = state.hints[state.currentHintIndex];
+        }
+    }
+
+    function updateTimer() {
+        if (!state.startTime) return;
+        const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+        const minutes = Math.floor(elapsed/60);
+        const seconds = elapsed % 60;
+        document.getElementById('elapsed').textContent = `${minutes}:${seconds.toString().padStart(2,'0')}`;
+    }
+
+    function openSettings(){
+        const token = localStorage.getItem('hf_token') || '';
+        document.getElementById('hfTokenInput').value = token;
+        document.getElementById('settingsModal').classList.add('active');
+    }
+
+    function closeSettings(){ document.getElementById('settingsModal').classList.remove('active'); }
+
+    async function saveSettingsHandler(){
+        const input = document.getElementById('hfTokenInput');
+        const token = input.value.trim();
+        if (!token) {
+            addTerminalLine('error', '[!] Please enter a valid token');
+            return;
+        }
+
+        addTerminalLine('info', '[*] Verifying token with service...');
+        document.getElementById('saveTokenBtn').disabled = true;
+        try {
+            const result = await verifyTokenWithWorker(token);
+            if (!result.ok) {
+                addTerminalLine('error', `[!] Token verification failed: ${result.error}`);
+                document.getElementById('saveTokenBtn').disabled = false;
+                return;
+            }
+            localStorage.setItem('hf_token', token);
+            addTerminalLine('success', `[✓] Token verified for user: ${result.username}. Token saved.`);
+            closeSettings();
+        } catch (err) {
+            addTerminalLine('error', `[!] Verification error: ${err.message || err}`);
+        } finally {
+            document.getElementById('saveTokenBtn').disabled = false;
+        }
+    }
+
+    function updateButtonVisibility() {
+        const startMachineSection = document.getElementById('startMachineSection');
+        startMachineSection.classList.remove('hidden');
+    }
+
+    document.querySelectorAll('[data-os]').forEach(btn => {
+        btn.addEventListener('click', (e)=>{
+            document.querySelectorAll('[data-os]').forEach(b=>b.classList.remove('active'));
+            e.target.classList.add('active');
+            state.os = e.target.dataset.os;
+            updateButtonVisibility();
+        });
+    });
+
+    document.querySelectorAll('[data-difficulty]').forEach(btn => {
+        btn.addEventListener('click', (e)=>{
+            document.querySelectorAll('[data-difficulty]').forEach(b=>b.classList.remove('active'));
+            e.target.classList.add('active');
+            state.difficulty = e.target.dataset.difficulty;
+            updateButtonVisibility();
+        });
+    });
+
+    document.querySelectorAll('[data-topic]').forEach(btn => {
+        btn.addEventListener('click', (e)=>{
+            document.querySelectorAll('[data-topic]').forEach(b=>b.classList.remove('active'));
+            e.target.classList.add('active');
+            state.topic = e.target.dataset.topic;
+            updateButtonVisibility();
+        });
+    });
+
+    document.getElementById('startMachineBtn').addEventListener('click', async ()=>{
+        const machineBtn = document.getElementById('startMachineBtn');
+        machineBtn.disabled = true;
+        machineBtn.textContent = '🖥️ Starting Machine...';
+        document.getElementById('startMachineSection').classList.add('hidden');
+        document.getElementById('progressSection').classList.remove('hidden');
+
+        setTimeout(async ()=>{
+            try {
+                await startScenario();
+            } finally {
+                machineBtn.disabled = false;
+                machineBtn.textContent = '🖥️ Start Machine';
+            }
+        }, 800);
+    });
+
+    document.getElementById('settingsBtn').addEventListener('click', openSettings);
+    document.getElementById('saveTokenBtn').addEventListener('click', saveSettingsHandler);
+    document.getElementById('submitBtn').addEventListener('click', executeCommand);
+    document.getElementById('commandInput').addEventListener('keypress', (e)=>{ if (e.key === 'Enter') executeCommand(); });
+
+    document.getElementById('commandInput').addEventListener('input', (e)=>{
+        if (e.target.value.toLowerCase().includes('hint')) {
+            e.target.value = e.target.value.replace(/hint/gi, '');
+            showHint();
+        }
+    });
+
+    setInterval(updateTimer, 1000);
+
+    function escapeHtml(unsafe) {
+        if (unsafe === null || unsafe === undefined) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    window.showHint = showHint;
+    window.closeHint = closeHint;
+    window.nextHint = nextHint;
+    window.closeSettings = closeSettings;
+    window.openSettings = openSettings;
+
+    console.log('NOVM Platform: Robust JSON parsing, improved error handling, fallback support');
+    </script>
+</body>
+</html>
