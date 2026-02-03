@@ -22,7 +22,7 @@
         .logo{font-size:24px;font-weight:bold;margin-bottom:30px;background:linear-gradient(135deg,var(--accent),#06d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px;text-transform:uppercase;text-align:center}
         .section-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);margin-top:25px;margin-bottom:12px;font-weight:600}
         .difficulty-selector,.topic-selector{display:flex;flex-direction:column;gap:8px}
-        .os-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+        .os-selector{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-left:12px}
         .btn{padding:10px 14px;border:1px solid var(--border);background:transparent;color:var(--text-primary);cursor:pointer;border-radius:4px;font-family:inherit;font-size:12px;transition:all .3s;text-transform:uppercase;letter-spacing:.5px;font-weight:500}
         .btn:hover{border-color:var(--accent);background:rgba(6,182,212,.08);box-shadow:0 0 10px var(--accent-glow)}
         .btn.active{background:var(--accent);color:var(--primary);border-color:var(--accent);box-shadow:0 0 20px var(--accent-glow)}
@@ -39,10 +39,14 @@
         .header-title{font-size:18px;font-weight:bold;color:var(--accent);margin-bottom:5px}
         .header-subtitle{font-size:12px;color:var(--text-secondary)}
         .header-status{font-size:11px;color:var(--warning);margin-top:4px}
+        .header-stats{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+        .header-stat{font-size:11px;color:var(--text-secondary);border:1px solid var(--border);padding:4px 8px;border-radius:4px;background:rgba(15,23,42,.5)}
+        .header-progress{margin-top:6px;height:6px;background:var(--primary);border:1px solid var(--border);border-radius:3px;overflow:hidden}
+        .header-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--success));transition:width .25s ease}
         .header-actions{display:flex;align-items:center;gap:12px}
         .target-info{font-size:11px;color:var(--success);border:1px solid var(--success);padding:6px 10px;border-radius:4px;background:rgba(16,185,129,.08)}
         .section-info{font-size:11px;color:var(--accent);border:1px solid var(--accent);padding:6px 10px;border-radius:4px;background:rgba(6,182,212,.08)}
-        .mobile-toggle{display:none}
+        .mobile-toggle{display:inline-flex}
         .terminal-container{flex:1;display:flex;flex-direction:column;overflow:hidden}
         .terminal{flex:1;background:var(--primary);padding:20px;overflow-y:auto;font-size:13px;border:1px solid var(--border);margin:20px;margin-bottom:0;border-radius:4px;box-shadow:inset 0 2px 10px rgba(0,0,0,.5)}
         .terminal-line{margin-bottom:8px;word-wrap:break-word;animation:slideIn .3s ease-out}
@@ -90,10 +94,8 @@
             .target-info{order:2}
         }
 
-        @media (max-width: 860px) {
-            .sidebar-collapsed .sidebar{display:none}
-            .sidebar-collapsed .main-content{width:100%}
-        }
+        .sidebar-collapsed .sidebar{display:none}
+        .sidebar-collapsed .main-content{width:100%}
 
         @media (max-width: 600px) {
             .logo{font-size:20px}
@@ -128,17 +130,15 @@
                 <div class="os-selector">
                     <button class="btn active" data-os="linux">🐧 Linux</button>
                     <button class="btn" data-os="windows">🪟 Windows</button>
-                    <button class="btn" data-os="macos">🍎 macOS</button>
+                    <!-- <button class="btn" data-os="macos">🍎 macOS</button> -->
                 </div>
             </div>
 
             <div>
-                <div class="section-title">Difficulty</div>
+                <div class="section-title">Guidance Mode</div>
                 <div class="difficulty-selector">
-                    <button class="btn active" data-difficulty="beginner">Beginner</button>
-                    <button class="btn" data-difficulty="intermediate">Intermediate</button>
-                    <button class="btn" data-difficulty="advanced">Advanced</button>
-                    <button class="btn" data-difficulty="expert">Expert</button>
+                    <button class="btn active" data-guidance="guided">Guided (extra hints)</button>
+                    <button class="btn" data-guidance="challenge">Challenge (minimal hints)</button>
                 </div>
             </div>
 
@@ -150,6 +150,10 @@
                     <button class="btn" data-topic="web">Web Security</button>
                     <button class="btn" data-topic="postex">Post-Exploitation</button>
                     <button class="btn" data-topic="crypto">Cryptography</button>
+                    <button class="btn" data-topic="logs">Log Analysis</button>
+                    <button class="btn" data-topic="perms">File Permissions</button>
+                    <button class="btn" data-topic="proc">Process & Service Recon</button>
+                    <button class="btn hidden" data-topic="winrecon">Windows Local Recon</button>
                     <button class="btn hidden" data-topic="ad">Active Directory Basics</button>
                     <button class="btn hidden" data-topic="wireless">Wireless Recon</button>
                     <!--
@@ -191,6 +195,14 @@
                         <div class="header-title" id="headerTitle">Welcome to noo vm</div>
                         <div class="header-subtitle" id="headerSubtitle">Select OS, difficulty, and topic to start</div>
                         <div class="header-status hidden" id="headerStatus"></div>
+                        <div class="header-progress hidden" id="headerProgress">
+                            <div class="header-progress-fill" id="headerProgressFill"></div>
+                        </div>
+                        <div class="header-stats hidden" id="headerStats">
+                            <div class="header-stat" id="headerStageStat">Stage: 0/0</div>
+                            <div class="header-stat" id="headerTimeStat">Time: 0:00</div>
+                            <div class="header-stat" id="headerCmdStat">Commands: 0</div>
+                        </div>
                     </div>
                     <div class="header-actions">
                         <div class="target-info hidden" id="targetInfo"></div>
@@ -241,7 +253,15 @@
             <div class="modal-text" style="font-size:12px;margin-bottom:15px">
                 Enter your Hugging Face API token to enable AI scenario generation.
                 <br /><br />
-                Get your token at: <strong>https://huggingface.co/settings/tokens</strong>
+                <strong>Step-by-step:</strong>
+                <br />1) Create a free Hugging Face account.
+                <br />2) Go to <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline">https://huggingface.co/settings/tokens</a>
+                <br />3) Click "New token"
+                <br />4) Click "Read"
+                <br />5) Click "Create Token"
+                <br />6) Copy the token (starts with hf_) and paste it here.
+                <br /><br />
+                <strong>Note:</strong> Your API key is stored locally on your device.
             </div>
             <input type="password" id="hfTokenInput" placeholder="Enter HF_TOKEN..." style="width:100%;padding:10px;margin-bottom:15px;background:var(--primary);border:1px solid var(--border);color:var(--text-primary);border-radius:4px;font-family:inherit" />
             <div class="modal-buttons">
@@ -281,6 +301,10 @@
         'web': 'web_security',
         'postex': 'post_exploitation',
         'crypto': 'cryptography',
+        'logs': 'log_analysis',
+        'perms': 'file_permissions',
+        'proc': 'process_service_recon',
+        'winrecon': 'windows_local_recon',
         'ad': 'active_directory_basics',
         'wireless': 'wireless_recon'
     };
@@ -351,6 +375,40 @@
         'channel hopping'
     ];
 
+    const LOGS_SECTIONS = [
+        'journalctl',
+        'auth.log',
+        'syslog',
+        'last',
+        'lastlog',
+        'grep'
+    ];
+
+    const PERMS_SECTIONS = [
+        'ls -l',
+        'chmod',
+        'chown',
+        'umask',
+        'getfacl',
+        'setfacl'
+    ];
+
+    const PROC_SECTIONS = [
+        'ps aux',
+        'systemctl',
+        'ss -tulpen',
+        'netstat',
+        'lsof -i'
+    ];
+
+    const WIN_RECON_SECTIONS = [
+        'whoami',
+        'systeminfo',
+        'tasklist',
+        'netstat -ano',
+        'ipconfig /all'
+    ];
+
     function stagesForDifficulty(d) {
         switch (d) {
             case 'beginner': return 4;
@@ -377,6 +435,10 @@
         const isWebLinux = os === 'linux' && normalizedTopic === 'web_security';
         const isPostexLinux = os === 'linux' && normalizedTopic === 'post_exploitation';
         const isCryptoLinux = os === 'linux' && normalizedTopic === 'cryptography';
+        const isLogsLinux = os === 'linux' && normalizedTopic === 'log_analysis';
+        const isPermsLinux = os === 'linux' && normalizedTopic === 'file_permissions';
+        const isProcLinux = os === 'linux' && normalizedTopic === 'process_service_recon';
+        const isWinReconWindows = os === 'windows' && normalizedTopic === 'windows_local_recon';
         const isAdWindowsAdvanced = os === 'windows' && (difficulty === 'advanced' || difficulty === 'expert') && normalizedTopic === 'active_directory_basics';
         const isWirelessAdvanced = (difficulty === 'advanced' || difficulty === 'expert') && normalizedTopic === 'wireless_recon';
         const numberOfStages = stagesForDifficulty(difficulty);
@@ -389,6 +451,7 @@
 
 Use ONLY this section for all stages: ${chosenSection}
 Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -408,6 +471,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
       "objective": "Objective",
       "question": "Question prompt",
       "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-c 4","192.168.1.10"],
       "hints": ["hint1", "hint2", "hint3"]
     }
   ]
@@ -428,6 +493,7 @@ Keep each answer as a single command.`;
 
 Use ONLY this section for all stages: ${chosenSection}
 Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -447,6 +513,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
       "objective": "Objective",
       "question": "Question prompt",
       "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-l"],
       "hints": ["hint1", "hint2", "hint3"]
     }
   ]
@@ -467,6 +535,7 @@ Keep each answer as a single command.`;
 
 Use ONLY this section for all stages: ${chosenSection}
 Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -486,6 +555,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
       "objective": "Objective",
       "question": "Question prompt",
       "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-I"],
       "hints": ["hint1", "hint2", "hint3"]
     }
   ]
@@ -506,6 +577,7 @@ Keep each answer as a single command.`;
 
 Use ONLY this section for all stages: ${chosenSection}
 Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -525,6 +597,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
       "objective": "Objective",
       "question": "Question prompt",
       "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-a"],
       "hints": ["hint1", "hint2", "hint3"]
     }
   ]
@@ -545,6 +619,7 @@ Keep each answer as a single command.`;
 
 Use ONLY this section for all stages: ${chosenSection}
 Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -564,6 +639,176 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
       "objective": "Objective",
       "question": "Question prompt",
       "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-base64"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isLogsLinux) {
+            const chosenSection = pickLogsSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational log analysis scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-u"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isPermsLinux) {
+            const chosenSection = pickPermsSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational file permissions scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-l"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isProcLinux) {
+            const chosenSection = pickProcSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational process and service recon scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-tulpen"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isWinReconWindows) {
+            const chosenSection = pickWinReconSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational Windows local reconnaissance scenario.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["/all"],
       "hints": ["hint1", "hint2", "hint3"]
     }
   ]
@@ -584,6 +829,7 @@ Keep each answer as a single command.`;
 
 Use ONLY this section for all stages: ${chosenSection}
 Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -603,6 +849,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
       "objective": "Objective",
       "question": "Question prompt",
       "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["/all"],
       "hints": ["hint1", "hint2", "hint3"]
     }
   ]
@@ -623,6 +871,7 @@ Keep each answer as a single command.`;
 
 Use ONLY this section for all stages: ${chosenSection}
 Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -642,6 +891,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
       "objective": "Objective",
       "question": "Question prompt",
       "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-w"],
       "hints": ["hint1", "hint2", "hint3"]
     }
   ]
@@ -658,6 +909,7 @@ Keep each answer as a single command.`;
         state.currentSection = null;
         return `You are an expert cybersecurity training scenario generator. Create an interactive, educational cybersecurity challenge scenario.
 Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -676,6 +928,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
       "objective": "Objective",
       "expectedCommands": ["cmd1", "cmd2"],
       "commandVariations": [{"command": "tool", "variations": ["alt1"], "description": "desc"}],
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["flag1"],
       "hints": ["hint1", "hint2", "hint3"],
       "commonMistakes": ["mistake1"],
       "output": "expected output",
@@ -702,6 +956,7 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
 
     let state = {
         difficulty: 'beginner',
+        guidanceMode: 'guided',
         topic: 'network',
         os: 'linux',
         scenario: null,
@@ -719,7 +974,9 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         lastSection: null,
         currentSection: null,
         answerRevealed: {},
-        loadingPhase: false
+        loadingPhase: false,
+        progressTimer: null,
+        progressStart: null
     };
 
     function pickNetworkSection() {
@@ -855,6 +1112,82 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         return pick;
     }
 
+    function pickLogsSection() {
+        if (!LOGS_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_logs');
+        state.lastSection = stored || state.lastSection;
+        if (LOGS_SECTIONS.length === 1) {
+            state.lastSection = LOGS_SECTIONS[0];
+            localStorage.setItem('last_section_logs', state.lastSection);
+            return LOGS_SECTIONS[0];
+        }
+        let pick = LOGS_SECTIONS[Math.floor(Math.random() * LOGS_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (LOGS_SECTIONS.indexOf(pick) + 1) % LOGS_SECTIONS.length;
+            pick = LOGS_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_logs', state.lastSection);
+        return pick;
+    }
+
+    function pickPermsSection() {
+        if (!PERMS_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_perms');
+        state.lastSection = stored || state.lastSection;
+        if (PERMS_SECTIONS.length === 1) {
+            state.lastSection = PERMS_SECTIONS[0];
+            localStorage.setItem('last_section_perms', state.lastSection);
+            return PERMS_SECTIONS[0];
+        }
+        let pick = PERMS_SECTIONS[Math.floor(Math.random() * PERMS_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (PERMS_SECTIONS.indexOf(pick) + 1) % PERMS_SECTIONS.length;
+            pick = PERMS_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_perms', state.lastSection);
+        return pick;
+    }
+
+    function pickProcSection() {
+        if (!PROC_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_proc');
+        state.lastSection = stored || state.lastSection;
+        if (PROC_SECTIONS.length === 1) {
+            state.lastSection = PROC_SECTIONS[0];
+            localStorage.setItem('last_section_proc', state.lastSection);
+            return PROC_SECTIONS[0];
+        }
+        let pick = PROC_SECTIONS[Math.floor(Math.random() * PROC_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (PROC_SECTIONS.indexOf(pick) + 1) % PROC_SECTIONS.length;
+            pick = PROC_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_proc', state.lastSection);
+        return pick;
+    }
+
+    function pickWinReconSection() {
+        if (!WIN_RECON_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_winrecon');
+        state.lastSection = stored || state.lastSection;
+        if (WIN_RECON_SECTIONS.length === 1) {
+            state.lastSection = WIN_RECON_SECTIONS[0];
+            localStorage.setItem('last_section_winrecon', state.lastSection);
+            return WIN_RECON_SECTIONS[0];
+        }
+        let pick = WIN_RECON_SECTIONS[Math.floor(Math.random() * WIN_RECON_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (WIN_RECON_SECTIONS.indexOf(pick) + 1) % WIN_RECON_SECTIONS.length;
+            pick = WIN_RECON_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_winrecon', state.lastSection);
+        return pick;
+    }
+
     const fallbackScenario = {
         title: 'SQL Injection Basics',
         description: 'Learn SQL injection fundamentals via a vulnerable search endpoint',
@@ -950,8 +1283,41 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         }
     }
 
+    function startHeaderProgress(durationMs) {
+        const wrap = document.getElementById('headerProgress');
+        const fill = document.getElementById('headerProgressFill');
+        if (!wrap || !fill) return;
+        wrap.classList.remove('hidden');
+        fill.style.width = '0%';
+        state.progressStart = Date.now();
+        const total = durationMs || 40000;
+        if (state.progressTimer) clearInterval(state.progressTimer);
+        state.progressTimer = setInterval(()=>{
+            const elapsed = Date.now() - state.progressStart;
+            const pct = Math.min(100, Math.round((elapsed / total) * 100));
+            fill.style.width = pct + '%';
+            if (pct >= 100) {
+                clearInterval(state.progressTimer);
+                state.progressTimer = null;
+            }
+        }, 250);
+    }
+
+    function stopHeaderProgress() {
+        const wrap = document.getElementById('headerProgress');
+        const fill = document.getElementById('headerProgressFill');
+        if (state.progressTimer) clearInterval(state.progressTimer);
+        state.progressTimer = null;
+        if (fill) fill.style.width = '100%';
+        if (wrap) setTimeout(()=>wrap.classList.add('hidden'), 500);
+    }
+
     function toggleSidebar() {
         document.body.classList.toggle('sidebar-collapsed');
+    }
+
+    function openSidebar() {
+        document.body.classList.remove('sidebar-collapsed');
     }
 
     async function regenerateScenario() {
@@ -1099,6 +1465,14 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
                 while (s.hints.length < 3) s.hints.push('No more hints available for this stage.');
                 s.commonMistakes = Array.isArray(s.commonMistakes) ? s.commonMistakes : [];
                 s.output = s.output || s.response || 'Command executed successfully.';
+                s.commandExplanation = s.commandExplanation || '';
+                if (Array.isArray(s.expectedFlags)) {
+                    s.expectedFlags = s.expectedFlags;
+                } else if (s.expectedFlags) {
+                    s.expectedFlags = [s.expectedFlags];
+                } else {
+                    s.expectedFlags = [];
+                }
                 s.successCriteria = s.successCriteria || '';
                 s.securityImplications = s.securityImplications || '';
                 s.nextStageSummary = s.nextStageSummary || s.nextStageHint || '';
@@ -1136,30 +1510,7 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
     function commandMatches(userCommand, expectedCommand, difficulty) {
         const u = normalizeCommand(userCommand);
         const e = normalizeCommand(expectedCommand);
-
-        if (difficulty === 'beginner') {
-            return u === e;
-        }
-
-        if (difficulty === 'intermediate') {
-            if (u === e) return true;
-            const uparts = u.split(' ');
-            const eparts = e.split(' ');
-            let prefixMatch = true;
-            for (let i=0;i<eparts.length;i++){
-                if (uparts[i] !== eparts[i]) { prefixMatch = false; break; }
-            }
-            if (prefixMatch) return true;
-            return commandKeywords(e).every(k => uparts.includes(k));
-        }
-
-        const ukeys = new Set(commandKeywords(u));
-        const ekeys = commandKeywords(e);
-        const required = ekeys.filter(k => !['-p','--port'].includes(k));
-        const allPresent = required.every(k => ukeys.has(k));
-        if (allPresent) return true;
-
-        return u.includes(e) || e.includes(u);
+        return u === e;
     }
 
     function findClosestVariation(userCmd, stage) {
@@ -1260,6 +1611,9 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
             addTerminalLine('success', '✓ Correct!');
             if (stage.securityImplications) addTerminalLine('info', `<strong>Security:</strong> ${escapeHtml(stage.securityImplications)}`);
             if (stage.commonMistakes && stage.commonMistakes.length > 0) addTerminalLine('info', `<strong>Common Mistakes:</strong> ${escapeHtml(stage.commonMistakes.join('; '))}`);
+            if (state.guidanceMode === 'guided' && stage.commandExplanation) {
+                addTerminalLine('info', `<strong>Command Explanation:</strong> ${escapeHtml(stage.commandExplanation)}`);
+            }
 
             state.completedStages.push(state.currentStage);
             state.currentStage++;
@@ -1298,6 +1652,7 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         document.getElementById('commandInput').disabled = true;
         document.getElementById('submitBtn').disabled = true;
         document.getElementById('terminal').innerHTML = '';
+        document.body.classList.add('sidebar-collapsed');
 
         state.loadingPhase = true;
         addTerminalLine('info', '[*] noo vm Lab Machine Starting...');
@@ -1305,22 +1660,28 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         addTerminalLine('info', '[*] Initializing virtual environment...');
         await delay(300);
         addTerminalLine('info', '[*] Generating scenario... please wait ~5 seconds');
+        startHeaderProgress(40000);
 
         const aiOk = await generateAIScenario();
         state.loadingPhase = false;
+        stopHeaderProgress();
 
         if (!aiOk) {
-            if (fallbackScenario && fallbackScenario.stages) {
-                state.scenario = JSON.parse(JSON.stringify(fallbackScenario));
-                state.isAIGenerated = false;
-                state.isFallback = true;
-                addTerminalLine('success', '[✓] Fallback template scenario loaded');
-            } else {
-                addTerminalLine('error', '[!] No fallback scenario available - cannot start');
-                document.getElementById('commandInput').disabled = false;
-                document.getElementById('submitBtn').disabled = false;
-                return;
-            }
+            state.scenario = null;
+            state.isAIGenerated = false;
+            state.isFallback = true;
+            document.getElementById('terminal').innerHTML = '';
+            addTerminalLine('info', '[!] AI token not found or generation failed. Add your HF token in Settings:');
+            addTerminalLine('info', '1) Create a free Hugging Face account');
+            addTerminalLine('info', '2) Go to <a href="https://huggingface.co/settings/tokens" target="_blank" rel="noopener noreferrer" style="color:#06b6d4;text-decoration:underline">https://huggingface.co/settings/tokens</a>');
+            addTerminalLine('info', '3) Click "New token"');
+            addTerminalLine('info', '4) Click "Read"');
+            addTerminalLine('info', '5) Click "Create Token"');
+            addTerminalLine('info', '6) Copy the token (starts with hf_) and paste it in Settings');
+            document.getElementById('commandInput').disabled = true;
+            document.getElementById('submitBtn').disabled = true;
+            updateHeader();
+            return;
         }
 
         state.currentStage = 0;
@@ -1361,7 +1722,31 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         addTerminalLine('info', `[Stage ${state.currentStage + 1}/${state.scenario.stages.length}] ${stage.name}`);
         addTerminalLine('info', `Objective: ${stage.objective}`);
         if (stage.question) addTerminalLine('info', `Question: ${escapeHtml(stage.question)}`);
+        let contextShown = false;
+        if (stage.question) {
+            const ctxParts = [];
+            const ip = state.scenario && state.scenario.targetIP ? state.scenario.targetIP : '';
+            if (ip && /ip|address|host|target|port/i.test(stage.question)) {
+                const port = extractPortFromText(stage.question) || extractPortFromText(getStageAnswer(stage));
+                ctxParts.push(`Target IP: ${ip}`);
+                if (/port/i.test(stage.question) || port) {
+                    ctxParts.push(`Port: ${port || 'see question'}`);
+                }
+            }
+            if (ctxParts.length) {
+                addTerminalLine('info', `<strong>Context:</strong> ${escapeHtml(ctxParts.join(' | '))}`);
+                contextShown = true;
+            }
+        }
+        const targetEl = document.getElementById('targetInfo');
+        if (targetEl) {
+            if (contextShown) targetEl.classList.add('hidden');
+            else targetEl.classList.remove('hidden');
+        }
         addTerminalLine('info', `Hints available: ${stage.hints.length}. Type 'hint' to view.`);
+        if (state.guidanceMode === 'guided' && stage.hints && stage.hints.length > 0) {
+            addTerminalLine('info', `<strong>Guided Hint:</strong> ${escapeHtml(stage.hints[0])}`);
+        }
         const tools = (stage.commandVariations || []).map(cv => cv.command.split(' ')[0]).filter(Boolean);
         if (tools.length) addTerminalLine('info', `Tools: ${escapeHtml([...new Set(tools)].join(', '))}`);
         state.hints = Array.isArray(stage.hints) ? stage.hints : (stage.hints ? [stage.hints] : []);
@@ -1378,6 +1763,21 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         if (!state.scenario) {
             const targetEl = document.getElementById('targetInfo');
             if (targetEl) targetEl.classList.add('hidden');
+            const sectionEl = document.getElementById('sectionInfo');
+            if (sectionEl) sectionEl.classList.add('hidden');
+            const progressEl = document.getElementById('headerProgress');
+            if (progressEl) progressEl.classList.add('hidden');
+            const statsEl = document.getElementById('headerStats');
+            if (statsEl) statsEl.classList.add('hidden');
+            if (state.isFallback) {
+                document.getElementById('headerTitle').textContent = 'Add Hugging Face Free API Key';
+                document.getElementById('headerSubtitle').textContent = 'Open Settings to add your token';
+                const statusEl = document.getElementById('headerStatus');
+                if (statusEl) {
+                    statusEl.textContent = '[!] AI token not found or generation failed. Add your HF token in Settings:';
+                    statusEl.classList.remove('hidden');
+                }
+            }
             return;
         }
         const stage = state.scenario.stages[Math.min(state.currentStage, state.scenario.stages.length-1)];
@@ -1385,6 +1785,13 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         document.getElementById('headerSubtitle').textContent = stage.objective || '';
         document.getElementById('currentStage').textContent = state.currentStage + 1;
         document.getElementById('totalStages').textContent = state.scenario.stages.length;
+        const statsEl = document.getElementById('headerStats');
+        if (statsEl) {
+            document.getElementById('headerStageStat').textContent = `Stage: ${state.currentStage + 1}/${state.scenario.stages.length}`;
+            document.getElementById('headerTimeStat').textContent = `Time: ${document.getElementById('elapsed').textContent}`;
+            document.getElementById('headerCmdStat').textContent = `Commands: ${state.commandCount}`;
+            statsEl.classList.remove('hidden');
+        }
         const progress = Math.round((state.currentStage / state.scenario.stages.length) * 100);
         document.getElementById('progressFill').style.width = progress + '%';
     }
@@ -1471,6 +1878,8 @@ You successfully completed all ${state.scenario.stages.length} stages!
         const minutes = Math.floor(elapsed/60);
         const seconds = elapsed % 60;
         document.getElementById('elapsed').textContent = `${minutes}:${seconds.toString().padStart(2,'0')}`;
+        const headerTime = document.getElementById('headerTimeStat');
+        if (headerTime) headerTime.textContent = `Time: ${minutes}:${seconds.toString().padStart(2,'0')}`;
     }
 
     function openSettings(){
@@ -1521,7 +1930,11 @@ You successfully completed all ${state.scenario.stages.length} stages!
             const isAdvanced = state.difficulty === 'advanced' || state.difficulty === 'expert';
             const isWindows = state.os === 'windows';
             document.querySelectorAll('[data-topic="ad"]').forEach(b=>{
-                if (isAdvanced && isWindows) b.classList.remove('hidden');
+                if (isWindows) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
+            document.querySelectorAll('[data-topic="winrecon"]').forEach(b=>{
+                if (isWindows) b.classList.remove('hidden');
                 else b.classList.add('hidden');
             });
             document.querySelectorAll('[data-topic="wireless"]').forEach(b=>{
@@ -1532,15 +1945,20 @@ You successfully completed all ${state.scenario.stages.length} stages!
         });
     });
 
-    document.querySelectorAll('[data-difficulty]').forEach(btn => {
+    document.querySelectorAll('[data-guidance]').forEach(btn => {
         btn.addEventListener('click', (e)=>{
-            document.querySelectorAll('[data-difficulty]').forEach(b=>b.classList.remove('active'));
+            document.querySelectorAll('[data-guidance]').forEach(b=>b.classList.remove('active'));
             e.target.classList.add('active');
-            state.difficulty = e.target.dataset.difficulty;
+            state.guidanceMode = e.target.dataset.guidance;
+            state.difficulty = state.guidanceMode === 'challenge' ? 'advanced' : 'beginner';
             const isAdvanced = state.difficulty === 'advanced' || state.difficulty === 'expert';
             const isWindows = state.os === 'windows';
             document.querySelectorAll('[data-topic="ad"]').forEach(b=>{
-                if (isAdvanced && isWindows) b.classList.remove('hidden');
+                if (isWindows) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
+            document.querySelectorAll('[data-topic="winrecon"]').forEach(b=>{
+                if (isWindows) b.classList.remove('hidden');
                 else b.classList.add('hidden');
             });
             document.querySelectorAll('[data-topic="wireless"]').forEach(b=>{
@@ -1564,7 +1982,11 @@ You successfully completed all ${state.scenario.stages.length} stages!
         const isAdvanced = state.difficulty === 'advanced' || state.difficulty === 'expert';
         const isWindows = state.os === 'windows';
         document.querySelectorAll('[data-topic="ad"]').forEach(b=>{
-            if (isAdvanced && isWindows) b.classList.remove('hidden');
+            if (isWindows) b.classList.remove('hidden');
+            else b.classList.add('hidden');
+        });
+        document.querySelectorAll('[data-topic="winrecon"]').forEach(b=>{
+            if (isWindows) b.classList.remove('hidden');
             else b.classList.add('hidden');
         });
         document.querySelectorAll('[data-topic="wireless"]').forEach(b=>{
