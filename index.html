@@ -38,11 +38,17 @@
         .header{background:var(--secondary);border-bottom:1px solid var(--border);padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.3)}
         .header-title{font-size:18px;font-weight:bold;color:var(--accent);margin-bottom:5px}
         .header-subtitle{font-size:12px;color:var(--text-secondary)}
+        .header-status{font-size:11px;color:var(--warning);margin-top:4px}
+        .header-actions{display:flex;align-items:center;gap:12px}
+        .target-info{font-size:11px;color:var(--success);border:1px solid var(--success);padding:6px 10px;border-radius:4px;background:rgba(16,185,129,.08)}
+        .section-info{font-size:11px;color:var(--accent);border:1px solid var(--accent);padding:6px 10px;border-radius:4px;background:rgba(6,182,212,.08)}
+        .mobile-toggle{display:none}
         .terminal-container{flex:1;display:flex;flex-direction:column;overflow:hidden}
         .terminal{flex:1;background:var(--primary);padding:20px;overflow-y:auto;font-size:13px;border:1px solid var(--border);margin:20px;margin-bottom:0;border-radius:4px;box-shadow:inset 0 2px 10px rgba(0,0,0,.5)}
         .terminal-line{margin-bottom:8px;word-wrap:break-word;animation:slideIn .3s ease-out}
         @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
         .prompt{color:var(--accent);font-weight:bold}.command{color:var(--text-primary);margin-left:5px}.output{color:var(--text-secondary);margin-left:0}.error{color:var(--danger)}.success{color:var(--success)}.info{color:var(--warning)}
+        .stage-divider{border-top:2px solid var(--accent);opacity:.6;margin:6px 0}
         .hint{background:rgba(245,158,11,.1);border-left:3px solid var(--warning);padding:10px 12px;margin:10px 0;color:var(--warning);border-radius:2px}
         .input-area{padding:20px;background:var(--secondary);border-top:1px solid var(--border);display:flex;gap:10px}
         .input-wrapper{flex:1;display:flex;align-items:center;background:var(--primary);border:1px solid var(--border);border-radius:4px;padding:0 12px}
@@ -59,6 +65,56 @@
         ::-webkit-scrollbar{width:8px;height:8px} ::-webkit-scrollbar-track{background:var(--primary)} ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px} ::-webkit-scrollbar-thumb:hover{background:#00a4cc}
         .loading{display:inline-block;color:var(--accent)} .loading::after{content:'.';animation:dots 1.5s steps(4,end) infinite}
         @keyframes dots{0%,20%{content:'.'}40%{content:'..'}60%{content:'...'}80%,100%{content:''}}
+
+        /* Responsive layout */
+        @media (max-width: 1024px) {
+            .sidebar{width:280px;padding:16px}
+            .header{padding:16px}
+            .terminal{margin:16px;padding:16px}
+            .input-area{padding:16px}
+        }
+
+        @media (max-width: 860px) {
+            html,body{overflow:auto}
+            .container{flex-direction:column;height:auto;min-height:100vh}
+            .sidebar{width:100%;border-right:none;border-bottom:1px solid var(--border);box-shadow:none}
+            .mobile-toggle{display:inline-flex}
+            .main-content{width:100%}
+            .os-selector{grid-template-columns:1fr 1fr 1fr}
+            .difficulty-selector,.topic-selector{gap:6px}
+            .header{position:sticky;top:0;z-index:5}
+            .terminal{margin:12px}
+            .input-area{flex-direction:column}
+            .btn-submit{width:100%}
+            .header-actions{flex-wrap:wrap;justify-content:flex-end}
+            .target-info{order:2}
+        }
+
+        @media (max-width: 860px) {
+            .sidebar-collapsed .sidebar{display:none}
+            .sidebar-collapsed .main-content{width:100%}
+        }
+
+        @media (max-width: 600px) {
+            .logo{font-size:20px}
+            .sidebar{padding:14px}
+            .section-title{margin-top:18px}
+            .os-selector{grid-template-columns:1fr 1fr}
+            .btn{font-size:11px;padding:9px 12px}
+            .header-title{font-size:16px}
+            .header-subtitle{font-size:11px}
+            .terminal{font-size:12px;padding:14px}
+            .input-wrapper{padding:0 10px}
+            input[type="text"]{font-size:12px}
+            .modal-content{padding:20px}
+        }
+
+        @media (max-width: 420px) {
+            .os-selector{grid-template-columns:1fr}
+            .stats{grid-template-columns:1fr}
+            .terminal{margin:10px}
+            .input-area{padding:12px}
+        }
     </style>
 </head>
 <body>
@@ -89,11 +145,16 @@
             <div>
                 <div class="section-title">Topic</div>
                 <div class="topic-selector">
-                    <button class="btn active" data-topic="web">Web Security</button>
-                    <button class="btn" data-topic="network">Network Penetration</button>
+                    <button class="btn active" data-topic="network">Network Penetration</button>
                     <button class="btn" data-topic="privilege">Privilege Escalation</button>
+                    <button class="btn" data-topic="web">Web Security</button>
                     <button class="btn" data-topic="postex">Post-Exploitation</button>
                     <button class="btn" data-topic="crypto">Cryptography</button>
+                    <button class="btn hidden" data-topic="ad">Active Directory Basics</button>
+                    <button class="btn hidden" data-topic="wireless">Wireless Recon</button>
+                    <!--
+                    <button class="btn" data-topic="other">Other</button>
+                    -->
                 </div>
             </div>
 
@@ -129,8 +190,15 @@
                     <div>
                         <div class="header-title" id="headerTitle">Welcome to NOVM</div>
                         <div class="header-subtitle" id="headerSubtitle">Select OS, difficulty, and topic to start</div>
+                        <div class="header-status hidden" id="headerStatus"></div>
                     </div>
-                    <button class="btn" id="settingsBtn" style="padding:8px 12px;font-size:11px">⚙️ Settings</button>
+                    <div class="header-actions">
+                        <div class="target-info hidden" id="targetInfo"></div>
+                        <div class="section-info hidden" id="sectionInfo"></div>
+                        <button class="btn mobile-toggle" id="mobileToggleBtn" style="padding:8px 12px;font-size:11px">☰ Menu</button>
+                        <button class="btn" id="regenerateBtn" style="padding:8px 12px;font-size:11px">↻ Regenerate</button>
+                        <button class="btn" id="settingsBtn" style="padding:8px 12px;font-size:11px">⚙️ Settings</button>
+                    </div>
                 </div>
             </div>
 
@@ -144,7 +212,21 @@
                 <div class="input-area">
                     <div class="input-wrapper" id="inputWrapper">
                         <span class="prompt-symbol">$</span>
-                        <input type="text" id="commandInput" placeholder="Enter command..." disabled />
+                        <input
+                            type="text"
+                            id="commandInput"
+                            name="command"
+                            placeholder="Enter command..."
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                            spellcheck="false"
+                            inputmode="text"
+                            data-form-type="other"
+                            data-lpignore="true"
+                            data-1p-ignore="true"
+                            disabled
+                        />
                     </div>
                     <button class="btn-submit" id="submitBtn" disabled>Execute</button>
                 </div>
@@ -194,19 +276,87 @@
 
     <script>
     const TOPIC_MAP = {
-        'web': 'web_security',
         'network': 'network_penetration',
         'privilege': 'privilege_escalation',
+        'web': 'web_security',
         'postex': 'post_exploitation',
-        'crypto': 'cryptography'
+        'crypto': 'cryptography',
+        'ad': 'active_directory_basics',
+        'wireless': 'wireless_recon'
     };
+
+    const NETWORK_SECTIONS = [
+        'whois',
+        'nslookup',
+        'dig',
+        'ping',
+        'traceroute',
+        'telnet',
+        'netcat',
+        'nmap basic port scan (tcp connect scan)',
+        'nmap basic port scan (tcp SYN scan)',
+        'nmap basic port scan (udp port scan)'
+    ];
+
+    const PRIV_ESC_SECTIONS = [
+        'sudo -l',
+        'id',
+        'groups',
+        'find',
+        'ps aux',
+        'crontab',
+        'env',
+        'SUID binaries',
+        'Misconfigured permissions'
+    ];
+
+    const WEB_SECTIONS = [
+        'directory brute force',
+        'basic SQLi',
+        'basic XSS',
+        'HTTP header inspection',
+        'robots.txt',
+        'parameter fuzzing'
+    ];
+
+    const POSTEX_SECTIONS = [
+        'whoami/hostname',
+        'system info',
+        'network discovery',
+        'user enumeration',
+        'file search',
+        'process inspection'
+    ];
+
+    const CRYPTO_SECTIONS = [
+        'hash identification',
+        'base64 encode/decode',
+        'openssl md5/sha',
+        'salted hash check',
+        'simple Caesar'
+    ];
+
+    const AD_SECTIONS = [
+        'whoami /all',
+        'net user',
+        'net group',
+        'ipconfig /all',
+        'systeminfo'
+    ];
+
+    const WIRELESS_SECTIONS = [
+        'monitor mode',
+        'airodump basics',
+        'handshake capture',
+        'channel hopping'
+    ];
 
     function stagesForDifficulty(d) {
         switch (d) {
-            case 'beginner': return 3;
-            case 'intermediate': return 4;
-            case 'advanced': return 5;
-            case 'expert': return 6;
+            case 'beginner': return 4;
+            case 'intermediate': return 5;
+            case 'advanced': return 6;
+            case 'expert': return 7;
             default: return 4;
         }
     }
@@ -222,9 +372,292 @@
 
     function buildAIPrompt(difficulty, topic, os) {
         const normalizedTopic = TOPIC_MAP[topic] || topic;
+        const isNetworkLinux = os === 'linux' && normalizedTopic === 'network_penetration';
+        const isPrivilegeLinux = os === 'linux' && normalizedTopic === 'privilege_escalation';
+        const isWebLinux = os === 'linux' && normalizedTopic === 'web_security';
+        const isPostexLinux = os === 'linux' && normalizedTopic === 'post_exploitation';
+        const isCryptoLinux = os === 'linux' && normalizedTopic === 'cryptography';
+        const isAdWindowsAdvanced = os === 'windows' && (difficulty === 'advanced' || difficulty === 'expert') && normalizedTopic === 'active_directory_basics';
+        const isWirelessAdvanced = (difficulty === 'advanced' || difficulty === 'expert') && normalizedTopic === 'wireless_recon';
         const numberOfStages = stagesForDifficulty(difficulty);
 
+        if (isNetworkLinux) {
+            const chosenSection = pickNetworkSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational scenario.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Choose one section from the list",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isPrivilegeLinux) {
+            const chosenSection = pickPrivilegeSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational privilege escalation scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isWebLinux) {
+            const chosenSection = pickWebSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational web security scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isPostexLinux) {
+            const chosenSection = pickPostexSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational post-exploitation scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isCryptoLinux) {
+            const chosenSection = pickCryptoSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational cryptography basics scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isAdWindowsAdvanced) {
+            const chosenSection = pickAdSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational Active Directory basics scenario for Windows.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isWirelessAdvanced) {
+            const chosenSection = pickWirelessSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational wireless reconnaissance (theory only) scenario.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        const sessionId = Math.random().toString(36).slice(2);
+        state.currentSection = null;
         return `You are an expert cybersecurity training scenario generator. Create an interactive, educational cybersecurity challenge scenario.
+Session ID (for variation): ${sessionId}
 
 Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
 {
@@ -259,14 +692,17 @@ Return ONLY a valid JSON object with this exact structure (no markdown, no expla
   }
 }
 
-Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normalizedTopic}. Make it realistic and educational.`;
+Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normalizedTopic}. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]). Make it realistic and educational.`;
     }
 
     const CF_BASE = "https://noovm.uthnote.workers.dev";
 
     let state = {
         difficulty: 'beginner',
-        topic: 'web',
+        topic: 'network',
         os: 'linux',
         scenario: null,
         currentStage: 0,
@@ -277,8 +713,147 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
         hints: [],
         currentHintIndex: 0,
         isAIGenerated: false,
-        isFallback: false
+        isFallback: false,
+        wrongAttempts: {},
+        revealEnabled: {},
+        lastSection: null,
+        currentSection: null,
+        answerRevealed: {},
+        loadingPhase: false
     };
+
+    function pickNetworkSection() {
+        if (!NETWORK_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_network');
+        state.lastSection = stored || state.lastSection;
+        if (NETWORK_SECTIONS.length === 1) {
+            state.lastSection = NETWORK_SECTIONS[0];
+            localStorage.setItem('last_section_network', state.lastSection);
+            return NETWORK_SECTIONS[0];
+        }
+        let pick = NETWORK_SECTIONS[Math.floor(Math.random() * NETWORK_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (NETWORK_SECTIONS.indexOf(pick) + 1) % NETWORK_SECTIONS.length;
+            pick = NETWORK_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_network', state.lastSection);
+        return pick;
+    }
+
+    function pickPrivilegeSection() {
+        if (!PRIV_ESC_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_privilege');
+        state.lastSection = stored || state.lastSection;
+        if (PRIV_ESC_SECTIONS.length === 1) {
+            state.lastSection = PRIV_ESC_SECTIONS[0];
+            localStorage.setItem('last_section_privilege', state.lastSection);
+            return PRIV_ESC_SECTIONS[0];
+        }
+        let pick = PRIV_ESC_SECTIONS[Math.floor(Math.random() * PRIV_ESC_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (PRIV_ESC_SECTIONS.indexOf(pick) + 1) % PRIV_ESC_SECTIONS.length;
+            pick = PRIV_ESC_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_privilege', state.lastSection);
+        return pick;
+    }
+
+    function pickWebSection() {
+        if (!WEB_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_web');
+        state.lastSection = stored || state.lastSection;
+        if (WEB_SECTIONS.length === 1) {
+            state.lastSection = WEB_SECTIONS[0];
+            localStorage.setItem('last_section_web', state.lastSection);
+            return WEB_SECTIONS[0];
+        }
+        let pick = WEB_SECTIONS[Math.floor(Math.random() * WEB_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (WEB_SECTIONS.indexOf(pick) + 1) % WEB_SECTIONS.length;
+            pick = WEB_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_web', state.lastSection);
+        return pick;
+    }
+
+    function pickPostexSection() {
+        if (!POSTEX_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_postex');
+        state.lastSection = stored || state.lastSection;
+        if (POSTEX_SECTIONS.length === 1) {
+            state.lastSection = POSTEX_SECTIONS[0];
+            localStorage.setItem('last_section_postex', state.lastSection);
+            return POSTEX_SECTIONS[0];
+        }
+        let pick = POSTEX_SECTIONS[Math.floor(Math.random() * POSTEX_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (POSTEX_SECTIONS.indexOf(pick) + 1) % POSTEX_SECTIONS.length;
+            pick = POSTEX_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_postex', state.lastSection);
+        return pick;
+    }
+
+    function pickCryptoSection() {
+        if (!CRYPTO_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_crypto');
+        state.lastSection = stored || state.lastSection;
+        if (CRYPTO_SECTIONS.length === 1) {
+            state.lastSection = CRYPTO_SECTIONS[0];
+            localStorage.setItem('last_section_crypto', state.lastSection);
+            return CRYPTO_SECTIONS[0];
+        }
+        let pick = CRYPTO_SECTIONS[Math.floor(Math.random() * CRYPTO_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (CRYPTO_SECTIONS.indexOf(pick) + 1) % CRYPTO_SECTIONS.length;
+            pick = CRYPTO_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_crypto', state.lastSection);
+        return pick;
+    }
+
+    function pickAdSection() {
+        if (!AD_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_ad');
+        state.lastSection = stored || state.lastSection;
+        if (AD_SECTIONS.length === 1) {
+            state.lastSection = AD_SECTIONS[0];
+            localStorage.setItem('last_section_ad', state.lastSection);
+            return AD_SECTIONS[0];
+        }
+        let pick = AD_SECTIONS[Math.floor(Math.random() * AD_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (AD_SECTIONS.indexOf(pick) + 1) % AD_SECTIONS.length;
+            pick = AD_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_ad', state.lastSection);
+        return pick;
+    }
+
+    function pickWirelessSection() {
+        if (!WIRELESS_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_wireless');
+        state.lastSection = stored || state.lastSection;
+        if (WIRELESS_SECTIONS.length === 1) {
+            state.lastSection = WIRELESS_SECTIONS[0];
+            localStorage.setItem('last_section_wireless', state.lastSection);
+            return WIRELESS_SECTIONS[0];
+        }
+        let pick = WIRELESS_SECTIONS[Math.floor(Math.random() * WIRELESS_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (WIRELESS_SECTIONS.indexOf(pick) + 1) % WIRELESS_SECTIONS.length;
+            pick = WIRELESS_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_wireless', state.lastSection);
+        return pick;
+    }
 
     const fallbackScenario = {
         title: 'SQL Injection Basics',
@@ -348,9 +923,51 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
         const terminal = document.getElementById('terminal');
         const line = document.createElement('div');
         line.className = `terminal-line ${type}`;
+        if (state.loadingPhase) line.classList.add('startup-log');
         line.innerHTML = content;
         terminal.appendChild(line);
         terminal.scrollTop = terminal.scrollHeight;
+        updateHeaderStatusFromLine(content);
+    }
+
+    function clearStartupLogs() {
+        document.querySelectorAll('.terminal-line.startup-log').forEach(el => el.remove());
+    }
+
+    function updateHeaderStatusFromLine(content) {
+        const statusEl = document.getElementById('headerStatus');
+        if (!statusEl) return;
+        const text = String(content || '').replace(/<[^>]*>/g, '').trim();
+        if (!text) return;
+        if (text === '[*] Sending request to generation service...') {
+            statusEl.textContent = '[*] Generating scenario... please wait ~5 seconds';
+            statusEl.classList.remove('hidden');
+            return;
+        }
+        if (text.startsWith('[*]') || text.startsWith('[✓]') || text.startsWith('[!]')) {
+            statusEl.textContent = text;
+            statusEl.classList.remove('hidden');
+        }
+    }
+
+    function toggleSidebar() {
+        document.body.classList.toggle('sidebar-collapsed');
+    }
+
+    async function regenerateScenario() {
+        const btn = document.getElementById('regenerateBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '↻ Generating...';
+        }
+        try {
+            await startScenario();
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = '↻ Regenerate';
+            }
+        }
     }
 
     function delay(ms){ return new Promise(res=>setTimeout(res, ms)); }
@@ -408,8 +1025,8 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
 
     async function generateAIScenario() {
         try {
-            addTerminalLine('info', '[*] Generating AI-powered scenario...');
-            addTerminalLine('info', '[*] Sending request to generation service...');
+        addTerminalLine('info', '[*] Generating AI-powered scenario...');
+        addTerminalLine('info', '[*] Sending request to generation service...');
 
             const token = localStorage.getItem('hf_token');
             if (!token) throw new Error('No API token configured. Click ⚙️ Settings to add your HF_TOKEN');
@@ -467,8 +1084,16 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
                 const s = Object.assign({}, stage);
                 s.stageNumber = s.stageNumber || (idx + 1);
                 s.name = s.name || `Stage ${idx + 1}`;
-                s.objective = s.objective || 'Complete this stage';
-                s.expectedCommands = Array.isArray(s.expectedCommands) ? s.expectedCommands : [s.expectedCommands || ''];
+                s.objective = s.objective || s.question || 'Complete this stage';
+                if (Array.isArray(s.expectedCommands)) {
+                    s.expectedCommands = s.expectedCommands;
+                } else if (s.expectedCommands) {
+                    s.expectedCommands = [s.expectedCommands];
+                } else if (s.answer) {
+                    s.expectedCommands = [s.answer];
+                } else {
+                    s.expectedCommands = [''];
+                }
                 s.commandVariations = Array.isArray(s.commandVariations) ? s.commandVariations : [];
                 s.hints = Array.isArray(s.hints) ? s.hints : (s.hints ? [s.hints] : []);
                 while (s.hints.length < 3) s.hints.push('No more hints available for this stage.');
@@ -513,7 +1138,7 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
         const e = normalizeCommand(expectedCommand);
 
         if (difficulty === 'beginner') {
-            return u === e || u.startsWith(e + ' ') || u.startsWith(e + '/');
+            return u === e;
         }
 
         if (difficulty === 'intermediate') {
@@ -553,16 +1178,73 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
         return null;
     }
 
+    function getStageAnswer(stage) {
+        if (!stage) return '';
+        if (stage.answer) return String(stage.answer);
+        if (Array.isArray(stage.expectedCommands) && stage.expectedCommands[0]) return String(stage.expectedCommands[0]);
+        return '';
+    }
+
+    function extractPortFromText(text) {
+        if (!text) return '';
+        const raw = String(text);
+        if (/<\s*port/i.test(raw)) return '<port>';
+        let match = raw.match(/-p\s*([0-9]{2,5})/i);
+        if (match) return match[1];
+        match = raw.match(/:(\d{2,5})/);
+        if (match) return match[1];
+        match = raw.match(/\s([0-9]{2,5})\s*$/);
+        if (match) return match[1];
+        return '';
+    }
+
+    function updateTargetInfo(stage) {
+        const targetEl = document.getElementById('targetInfo');
+        if (!targetEl || !state.scenario || !state.scenario.targetIP) {
+            if (targetEl) targetEl.classList.add('hidden');
+            return;
+        }
+
+        const ip = state.scenario.targetIP;
+        const answer = getStageAnswer(stage);
+        const needsPort = /port/i.test(stage.question || stage.objective || '') || /-p\s*\d+|:\d{2,5}/.test(answer);
+        const port = extractPortFromText(stage.question) || extractPortFromText(answer);
+
+        const parts = [`IP: ${ip}`];
+        if (needsPort) parts.push(`Port: ${port || 'see question'}`);
+
+        targetEl.textContent = parts.join(' | ');
+        targetEl.classList.remove('hidden');
+    }
+
+    function updateSectionInfo() {
+        const sectionEl = document.getElementById('sectionInfo');
+        if (!sectionEl) return;
+        if (!state.currentSection) {
+            sectionEl.classList.add('hidden');
+            return;
+        }
+        sectionEl.textContent = `Section: ${state.currentSection}`;
+        sectionEl.classList.remove('hidden');
+    }
+
     function executeCommand() {
         const input = document.getElementById('commandInput');
         const command = input.value.trim();
         if (!command) return;
+
+        if (command.toLowerCase() === 'answer') {
+            showAnswer();
+            input.value = '';
+            return;
+        }
 
         addTerminalLine('', `<span class="prompt">$</span><span class="command">${escapeHtml(command)}</span>`);
         state.commandCount++;
         document.getElementById('cmdCount').textContent = state.commandCount;
 
         const stage = state.scenario.stages[state.currentStage];
+        const stageIndex = state.currentStage;
         const expectedCommands = stage.expectedCommands || [];
 
         const isCorrect = expectedCommands.some(exp => commandMatches(command, exp, state.difficulty)) ||
@@ -592,6 +1274,9 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
                 }
             }, 900);
         } else {
+            if (state.wrongAttempts[stageIndex] === undefined) state.wrongAttempts[stageIndex] = 0;
+            state.wrongAttempts[stageIndex] += 1;
+
             const close = findClosestVariation(command, stage);
             if (close) {
                 addTerminalLine('error', `Command not recognized or incorrect. Tool looks correct (${escapeHtml(close.command)}). Try variants: ${escapeHtml((close.variations||[]).slice(0,3).join(', ') || close.description || '')}`);
@@ -600,6 +1285,10 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
             }
             if (stage.hints && stage.hints.length > 0) {
                 addTerminalLine('info', 'Type "hint" for guidance');
+            }
+            if (state.wrongAttempts[stageIndex] >= 3 && !state.revealEnabled[stageIndex]) {
+                state.revealEnabled[stageIndex] = true;
+                addTerminalLine('info', 'Type "answer" to reveal the expected command.');
             }
         }
         input.value = '';
@@ -610,12 +1299,15 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
         document.getElementById('submitBtn').disabled = true;
         document.getElementById('terminal').innerHTML = '';
 
+        state.loadingPhase = true;
         addTerminalLine('info', '[*] NOVM Lab Machine Starting...');
         addTerminalLine('info', `[*] OS: ${state.os.toUpperCase()}`);
         addTerminalLine('info', '[*] Initializing virtual environment...');
         await delay(300);
+        addTerminalLine('info', '[*] Generating scenario... please wait ~5 seconds');
 
         const aiOk = await generateAIScenario();
+        state.loadingPhase = false;
 
         if (!aiOk) {
             if (fallbackScenario && fallbackScenario.stages) {
@@ -634,6 +1326,9 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
         state.currentStage = 0;
         state.commandCount = 0;
         state.completedStages = [];
+        state.wrongAttempts = {};
+        state.revealEnabled = {};
+        state.answerRevealed = {};
         state.startTime = Date.now();
         state.active = true;
 
@@ -656,23 +1351,35 @@ Create ${numberOfStages} stages for ${difficulty} difficulty covering ${normaliz
             addTerminalLine('error', '[!] No scenario loaded');
             return;
         }
+        clearStartupLogs();
         if (state.currentStage >= state.scenario.stages.length) {
             completeScenario();
             return;
         }
         const stage = state.scenario.stages[state.currentStage];
+        addTerminalLine('', '<div class="stage-divider"></div>');
         addTerminalLine('info', `[Stage ${state.currentStage + 1}/${state.scenario.stages.length}] ${stage.name}`);
         addTerminalLine('info', `Objective: ${stage.objective}`);
+        if (stage.question) addTerminalLine('info', `Question: ${escapeHtml(stage.question)}`);
         addTerminalLine('info', `Hints available: ${stage.hints.length}. Type 'hint' to view.`);
         const tools = (stage.commandVariations || []).map(cv => cv.command.split(' ')[0]).filter(Boolean);
         if (tools.length) addTerminalLine('info', `Tools: ${escapeHtml([...new Set(tools)].join(', '))}`);
         state.hints = Array.isArray(stage.hints) ? stage.hints : (stage.hints ? [stage.hints] : []);
         state.currentHintIndex = 0;
+        state.wrongAttempts[state.currentStage] = 0;
+        state.revealEnabled[state.currentStage] = false;
+        state.answerRevealed[state.currentStage] = false;
         updateHeader();
+        updateTargetInfo(stage);
+        updateSectionInfo();
     }
 
     function updateHeader() {
-        if (!state.scenario) return;
+        if (!state.scenario) {
+            const targetEl = document.getElementById('targetInfo');
+            if (targetEl) targetEl.classList.add('hidden');
+            return;
+        }
         const stage = state.scenario.stages[Math.min(state.currentStage, state.scenario.stages.length-1)];
         document.getElementById('headerTitle').textContent = state.scenario ? `Stage ${state.currentStage + 1}: ${stage.name}` : 'NOVM';
         document.getElementById('headerSubtitle').textContent = stage.objective || '';
@@ -719,6 +1426,30 @@ You successfully completed all ${state.scenario.stages.length} stages!
         const hint = state.hints[state.currentHintIndex];
         document.getElementById('hintText').textContent = hint;
         document.getElementById('hintModal').classList.add('active');
+    }
+
+    function showAnswer() {
+        const stageIndex = state.currentStage;
+        const stage = state.scenario && state.scenario.stages ? state.scenario.stages[stageIndex] : null;
+        if (!stage) {
+            addTerminalLine('info', 'No active stage.');
+            return;
+        }
+        if (!state.revealEnabled[stageIndex]) {
+            addTerminalLine('info', 'Answer reveal is locked. Make three attempts first.');
+            return;
+        }
+        if (state.answerRevealed[stageIndex]) {
+            addTerminalLine('info', 'Answer already revealed for this stage.');
+            return;
+        }
+        const answer = getStageAnswer(stage);
+        if (!answer) {
+            addTerminalLine('info', 'No answer available for this stage.');
+            return;
+        }
+        addTerminalLine('info', `<strong>Answer:</strong> ${escapeHtml(answer)}`);
+        state.answerRevealed[stageIndex] = true;
     }
 
     function closeHint() {
@@ -787,6 +1518,16 @@ You successfully completed all ${state.scenario.stages.length} stages!
             document.querySelectorAll('[data-os]').forEach(b=>b.classList.remove('active'));
             e.target.classList.add('active');
             state.os = e.target.dataset.os;
+            const isAdvanced = state.difficulty === 'advanced' || state.difficulty === 'expert';
+            const isWindows = state.os === 'windows';
+            document.querySelectorAll('[data-topic="ad"]').forEach(b=>{
+                if (isAdvanced && isWindows) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
+            document.querySelectorAll('[data-topic="wireless"]').forEach(b=>{
+                if (isAdvanced) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
             updateButtonVisibility();
         });
     });
@@ -796,6 +1537,16 @@ You successfully completed all ${state.scenario.stages.length} stages!
             document.querySelectorAll('[data-difficulty]').forEach(b=>b.classList.remove('active'));
             e.target.classList.add('active');
             state.difficulty = e.target.dataset.difficulty;
+            const isAdvanced = state.difficulty === 'advanced' || state.difficulty === 'expert';
+            const isWindows = state.os === 'windows';
+            document.querySelectorAll('[data-topic="ad"]').forEach(b=>{
+                if (isAdvanced && isWindows) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
+            document.querySelectorAll('[data-topic="wireless"]').forEach(b=>{
+                if (isAdvanced) b.classList.remove('hidden');
+                else b.classList.add('hidden');
+            });
             updateButtonVisibility();
         });
     });
@@ -808,6 +1559,19 @@ You successfully completed all ${state.scenario.stages.length} stages!
             updateButtonVisibility();
         });
     });
+
+    (function syncAdvancedTopicsOnLoad(){
+        const isAdvanced = state.difficulty === 'advanced' || state.difficulty === 'expert';
+        const isWindows = state.os === 'windows';
+        document.querySelectorAll('[data-topic="ad"]').forEach(b=>{
+            if (isAdvanced && isWindows) b.classList.remove('hidden');
+            else b.classList.add('hidden');
+        });
+        document.querySelectorAll('[data-topic="wireless"]').forEach(b=>{
+            if (isAdvanced) b.classList.remove('hidden');
+            else b.classList.add('hidden');
+        });
+    })();
 
     document.getElementById('startMachineBtn').addEventListener('click', async ()=>{
         const machineBtn = document.getElementById('startMachineBtn');
@@ -827,14 +1591,22 @@ You successfully completed all ${state.scenario.stages.length} stages!
     });
 
     document.getElementById('settingsBtn').addEventListener('click', openSettings);
+    document.getElementById('mobileToggleBtn').addEventListener('click', toggleSidebar);
+    document.getElementById('regenerateBtn').addEventListener('click', regenerateScenario);
     document.getElementById('saveTokenBtn').addEventListener('click', saveSettingsHandler);
     document.getElementById('submitBtn').addEventListener('click', executeCommand);
     document.getElementById('commandInput').addEventListener('keypress', (e)=>{ if (e.key === 'Enter') executeCommand(); });
 
     document.getElementById('commandInput').addEventListener('input', (e)=>{
-        if (e.target.value.toLowerCase().includes('hint')) {
+        const val = e.target.value.toLowerCase();
+        if (val.includes('hint')) {
             e.target.value = e.target.value.replace(/hint/gi, '');
             showHint();
+            return;
+        }
+        if (val.includes('answer')) {
+            e.target.value = e.target.value.replace(/answer/gi, '');
+            showAnswer();
         }
     });
 
@@ -860,5 +1632,3 @@ You successfully completed all ${state.scenario.stages.length} stages!
     </script>
 </body>
 </html>
-
-
