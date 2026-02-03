@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>NOVM - Interactive Cybersecurity Lab Platform</title>
+    <title>noo vm - Interactive Cybersecurity Lab Platform</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root{
@@ -121,7 +121,7 @@
     <div class="container">
         <!-- SIDEBAR -->
         <div class="sidebar">
-            <div class="logo">NOVM</div>
+            <div class="logo">noo vm</div>
 
             <div>
                 <div class="section-title">Operating System</div>
@@ -188,7 +188,7 @@
             <div class="header">
                 <div style="display:flex;justify-content:space-between;align-items:center">
                     <div>
-                        <div class="header-title" id="headerTitle">Welcome to NOVM</div>
+                        <div class="header-title" id="headerTitle">Welcome to noo vm</div>
                         <div class="header-subtitle" id="headerSubtitle">Select OS, difficulty, and topic to start</div>
                         <div class="header-status hidden" id="headerStatus"></div>
                     </div>
@@ -204,7 +204,7 @@
 
             <div class="terminal-container">
                 <div class="terminal" id="terminal">
-                    <div class="terminal-line" style="color:var(--accent)">Welcome to NOVM - Interactive Cybersecurity Lab</div>
+                    <div class="terminal-line" style="color:var(--accent)">Welcome to noo vm - Interactive Cybersecurity Lab</div>
                     <div class="terminal-line" style="color:var(--text-secondary)">Select your difficulty and topic from the left panel</div>
                     <div class="terminal-line" style="color:var(--text-secondary);margin-top:15px">Type commands as if you're on a real system. Each scenario builds progressively.</div>
                 </div>
@@ -1300,7 +1300,7 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         document.getElementById('terminal').innerHTML = '';
 
         state.loadingPhase = true;
-        addTerminalLine('info', '[*] NOVM Lab Machine Starting...');
+        addTerminalLine('info', '[*] noo vm Lab Machine Starting...');
         addTerminalLine('info', `[*] OS: ${state.os.toUpperCase()}`);
         addTerminalLine('info', '[*] Initializing virtual environment...');
         await delay(300);
@@ -1381,7 +1381,7 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
             return;
         }
         const stage = state.scenario.stages[Math.min(state.currentStage, state.scenario.stages.length-1)];
-        document.getElementById('headerTitle').textContent = state.scenario ? `Stage ${state.currentStage + 1}: ${stage.name}` : 'NOVM';
+        document.getElementById('headerTitle').textContent = state.scenario ? `Stage ${state.currentStage + 1}: ${stage.name}` : 'noo vm';
         document.getElementById('headerSubtitle').textContent = stage.objective || '';
         document.getElementById('currentStage').textContent = state.currentStage + 1;
         document.getElementById('totalStages').textContent = state.scenario.stages.length;
@@ -1628,7 +1628,7 @@ You successfully completed all ${state.scenario.stages.length} stages!
     window.closeSettings = closeSettings;
     window.openSettings = openSettings;
 
-    console.log('NOVM Platform: Robust JSON parsing, improved error handling, fallback support');
+    console.log('noo vm Platform: Robust JSON parsing, improved error handling, fallback support');
     </script>
 </body>
 </html>
