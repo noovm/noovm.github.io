@@ -170,6 +170,7 @@ Add your license here.
 
 - Built with HTML, CSS, and JavaScript
 - Powered by Hugging Face models
+- And me
 
 ## FAQ
 
