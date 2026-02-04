@@ -35,11 +35,19 @@ Noo VM uses Hugging Face to generate scenarios. Add your token in the app:
 2. Go to [[https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)]
 3. Click `New token.`
 4. Click `Read.`
+4.1. give Token nmae `noo vm` 
 5. Click `Create Token.`
 6. Copy the token (starts with `hf_`).
 7. Open Noo VM, click **Settings**, paste the token, and click **Save Token**.
 
 **Note:** The token is stored locally in your browser.
+
+## Create and Add your token 
+<img width="1916" height="984" alt="image" src="https://github.com/user-attachments/assets/fcb31e13-db72-4798-9f5b-bf3e1c056dca" />
+<img width="1919" height="988" alt="image" src="https://github.com/user-attachments/assets/834704e7-948a-4136-b502-a0de3d732511" />
+<img width="1919" height="987" alt="image" src="https://github.com/user-attachments/assets/208e2057-f7fe-472f-a58c-fb07c8127757" />
+<img width="1917" height="986" alt="image" src="https://github.com/user-attachments/assets/bce4e8e5-d39c-4bec-bfb5-492a872f524b" />
+<img width="1919" height="985" alt="image" src="https://github.com/user-attachments/assets/d05e36af-d71e-4ff9-b6db-2ab66c9a7656" />
 
 
 ## Quick Start
