@@ -52,6 +52,9 @@
         .terminal-line{margin-bottom:8px;word-wrap:break-word;animation:slideIn .3s ease-out}
         @keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
         .prompt{color:var(--accent);font-weight:bold}.command{color:var(--text-primary);margin-left:5px}.output{color:var(--text-secondary);margin-left:0}.error{color:var(--danger)}.success{color:var(--success)}.info{color:var(--warning)}
+        .question-line{color:var(--text-primary)}
+        .context-line{color:var(--success)}
+        .context-note{font-size:11px;color:var(--success);opacity:.9}
         .stage-divider{border-top:2px solid var(--accent);opacity:.6;margin:6px 0}
         .hint{background:rgba(245,158,11,.1);border-left:3px solid var(--warning);padding:10px 12px;margin:10px 0;color:var(--warning);border-radius:2px}
         .input-area{padding:20px;background:var(--secondary);border-top:1px solid var(--border);display:flex;gap:10px}
@@ -153,6 +156,11 @@
                     <button class="btn" data-topic="logs">Log Analysis</button>
                     <button class="btn" data-topic="perms">File Permissions</button>
                     <button class="btn" data-topic="proc">Process & Service Recon</button>
+                    <button class="btn" data-topic="audit">User & Access Auditing</button>
+                    <button class="btn" data-topic="nettrouble">Network Troubleshooting</button>
+                    <button class="btn" data-topic="webbasics">Web App Basics</button>
+                    <button class="btn" data-topic="filesearch">File Search & Discovery</button>
+                    <button class="btn" data-topic="perf">System Performance</button>
                     <button class="btn hidden" data-topic="winrecon">Windows Local Recon</button>
                     <button class="btn hidden" data-topic="ad">Active Directory Basics</button>
                     <button class="btn hidden" data-topic="wireless">Wireless Recon</button>
@@ -221,7 +229,7 @@
                     <div class="terminal-line" style="color:var(--text-secondary);margin-top:15px">Type commands as if you're on a real system. Each scenario builds progressively.</div>
                 </div>
 
-                <div class="input-area">
+                <form class="input-area" autocomplete="off" data-lpignore="true" data-1p-ignore="true">
                     <div class="input-wrapper" id="inputWrapper">
                         <span class="prompt-symbol">$</span>
                         <input
@@ -241,7 +249,7 @@
                         />
                     </div>
                     <button class="btn-submit" id="submitBtn" disabled>Execute</button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -304,6 +312,11 @@
         'logs': 'log_analysis',
         'perms': 'file_permissions',
         'proc': 'process_service_recon',
+        'audit': 'user_access_auditing',
+        'nettrouble': 'network_troubleshooting',
+        'webbasics': 'web_app_basics',
+        'filesearch': 'file_search_discovery',
+        'perf': 'system_performance',
         'winrecon': 'windows_local_recon',
         'ad': 'active_directory_basics',
         'wireless': 'wireless_recon'
@@ -409,6 +422,48 @@
         'ipconfig /all'
     ];
 
+    const AUDIT_SECTIONS = [
+        'id',
+        'groups',
+        'last',
+        'lastlog',
+        'getent passwd',
+        'sudo -l'
+    ];
+
+    const NET_TROUBLE_SECTIONS = [
+        'ip a',
+        'ip r',
+        'ping',
+        'traceroute',
+        'mtr',
+        'ss -tulpen'
+    ];
+
+    const WEB_BASICS_SECTIONS = [
+        'curl',
+        'httpie',
+        'headers',
+        'cookies',
+        'GET vs POST'
+    ];
+
+    const FILE_SEARCH_SECTIONS = [
+        'find',
+        'locate',
+        'grep',
+        'awk',
+        'ripgrep'
+    ];
+
+    const PERF_SECTIONS = [
+        'top',
+        'htop',
+        'free -m',
+        'df -h',
+        'du -sh'
+    ];
+
     function stagesForDifficulty(d) {
         switch (d) {
             case 'beginner': return 4;
@@ -438,6 +493,11 @@
         const isLogsLinux = os === 'linux' && normalizedTopic === 'log_analysis';
         const isPermsLinux = os === 'linux' && normalizedTopic === 'file_permissions';
         const isProcLinux = os === 'linux' && normalizedTopic === 'process_service_recon';
+        const isAuditLinux = os === 'linux' && normalizedTopic === 'user_access_auditing';
+        const isNetTroubleLinux = os === 'linux' && normalizedTopic === 'network_troubleshooting';
+        const isWebBasicsLinux = os === 'linux' && normalizedTopic === 'web_app_basics';
+        const isFileSearchLinux = os === 'linux' && normalizedTopic === 'file_search_discovery';
+        const isPerfLinux = os === 'linux' && normalizedTopic === 'system_performance';
         const isWinReconWindows = os === 'windows' && normalizedTopic === 'windows_local_recon';
         const isAdWindowsAdvanced = os === 'windows' && (difficulty === 'advanced' || difficulty === 'expert') && normalizedTopic === 'active_directory_basics';
         const isWirelessAdvanced = (difficulty === 'advanced' || difficulty === 'expert') && normalizedTopic === 'wireless_recon';
@@ -821,6 +881,216 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
 Keep each answer as a single command.`;
         }
 
+        if (isAuditLinux) {
+            const chosenSection = pickAuditSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational Linux user and access auditing scenario.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-l"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isNetTroubleLinux) {
+            const chosenSection = pickNetTroubleSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational Linux network troubleshooting scenario.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-c"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isWebBasicsLinux) {
+            const chosenSection = pickWebBasicsSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational web app basics scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-I"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isFileSearchLinux) {
+            const chosenSection = pickFileSearchSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational file search and discovery scenario for Linux.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-name"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
+        if (isPerfLinux) {
+            const chosenSection = pickPerfSection();
+            const sessionId = Math.random().toString(36).slice(2);
+            state.currentSection = chosenSection;
+            return `You are an expert cybersecurity training scenario generator. Create a ${numberOfStages}-stage, educational Linux system performance scenario.
+
+Use ONLY this section for all stages: ${chosenSection}
+Session ID (for variation): ${sessionId}
+Guidance mode: ${state.guidanceMode}
+
+Return ONLY a valid JSON object with this exact structure (no markdown, no explanations):
+{
+  "title": "Scenario Name",
+  "description": "Description",
+  "osType": "${os}",
+  "difficulty": "${difficulty}",
+  "topic": "${normalizedTopic}",
+  "numberOfStages": ${numberOfStages},
+  "scenarioBackground": "Background",
+  "targetIP": "192.168.1.10",
+  "stages": [
+    {
+      "stageNumber": 1,
+      "name": "Stage Name",
+      "topic": "Use only the chosen section",
+      "objective": "Objective",
+      "question": "Question prompt",
+      "answer": "Command the learner should run",
+      "commandExplanation": "Explain what the command does",
+      "expectedFlags": ["-h"],
+      "hints": ["hint1", "hint2", "hint3"]
+    }
+  ]
+}
+
+Create ${numberOfStages} stages. Each stage must be linked to the previous stage's outcome (progressive chain).
+For every stage, write a specific question that requires the exact answer command (include exact flags, counts, IP/port).
+The answer must be exactly one command string (no alternatives, no explanation).
+Include "expectedFlags" as an array of exact flags/args that must appear in the answer (e.g., ["-c 4","192.168.1.10"]).
+Keep each answer as a single command.`;
+        }
+
         if (isAdWindowsAdvanced) {
             const chosenSection = pickAdSection();
             const sessionId = Math.random().toString(36).slice(2);
@@ -1185,6 +1455,101 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         }
         state.lastSection = pick;
         localStorage.setItem('last_section_winrecon', state.lastSection);
+        return pick;
+    }
+
+    function pickAuditSection() {
+        if (!AUDIT_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_audit');
+        state.lastSection = stored || state.lastSection;
+        if (AUDIT_SECTIONS.length === 1) {
+            state.lastSection = AUDIT_SECTIONS[0];
+            localStorage.setItem('last_section_audit', state.lastSection);
+            return AUDIT_SECTIONS[0];
+        }
+        let pick = AUDIT_SECTIONS[Math.floor(Math.random() * AUDIT_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (AUDIT_SECTIONS.indexOf(pick) + 1) % AUDIT_SECTIONS.length;
+            pick = AUDIT_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_audit', state.lastSection);
+        return pick;
+    }
+
+    function pickNetTroubleSection() {
+        if (!NET_TROUBLE_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_nettrouble');
+        state.lastSection = stored || state.lastSection;
+        if (NET_TROUBLE_SECTIONS.length === 1) {
+            state.lastSection = NET_TROUBLE_SECTIONS[0];
+            localStorage.setItem('last_section_nettrouble', state.lastSection);
+            return NET_TROUBLE_SECTIONS[0];
+        }
+        let pick = NET_TROUBLE_SECTIONS[Math.floor(Math.random() * NET_TROUBLE_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (NET_TROUBLE_SECTIONS.indexOf(pick) + 1) % NET_TROUBLE_SECTIONS.length;
+            pick = NET_TROUBLE_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_nettrouble', state.lastSection);
+        return pick;
+    }
+
+    function pickWebBasicsSection() {
+        if (!WEB_BASICS_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_webbasics');
+        state.lastSection = stored || state.lastSection;
+        if (WEB_BASICS_SECTIONS.length === 1) {
+            state.lastSection = WEB_BASICS_SECTIONS[0];
+            localStorage.setItem('last_section_webbasics', state.lastSection);
+            return WEB_BASICS_SECTIONS[0];
+        }
+        let pick = WEB_BASICS_SECTIONS[Math.floor(Math.random() * WEB_BASICS_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (WEB_BASICS_SECTIONS.indexOf(pick) + 1) % WEB_BASICS_SECTIONS.length;
+            pick = WEB_BASICS_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_webbasics', state.lastSection);
+        return pick;
+    }
+
+    function pickFileSearchSection() {
+        if (!FILE_SEARCH_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_filesearch');
+        state.lastSection = stored || state.lastSection;
+        if (FILE_SEARCH_SECTIONS.length === 1) {
+            state.lastSection = FILE_SEARCH_SECTIONS[0];
+            localStorage.setItem('last_section_filesearch', state.lastSection);
+            return FILE_SEARCH_SECTIONS[0];
+        }
+        let pick = FILE_SEARCH_SECTIONS[Math.floor(Math.random() * FILE_SEARCH_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (FILE_SEARCH_SECTIONS.indexOf(pick) + 1) % FILE_SEARCH_SECTIONS.length;
+            pick = FILE_SEARCH_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_filesearch', state.lastSection);
+        return pick;
+    }
+
+    function pickPerfSection() {
+        if (!PERF_SECTIONS.length) return '';
+        const stored = localStorage.getItem('last_section_perf');
+        state.lastSection = stored || state.lastSection;
+        if (PERF_SECTIONS.length === 1) {
+            state.lastSection = PERF_SECTIONS[0];
+            localStorage.setItem('last_section_perf', state.lastSection);
+            return PERF_SECTIONS[0];
+        }
+        let pick = PERF_SECTIONS[Math.floor(Math.random() * PERF_SECTIONS.length)];
+        if (state.lastSection && pick === state.lastSection) {
+            const idx = (PERF_SECTIONS.indexOf(pick) + 1) % PERF_SECTIONS.length;
+            pick = PERF_SECTIONS[idx];
+        }
+        state.lastSection = pick;
+        localStorage.setItem('last_section_perf', state.lastSection);
         return pick;
     }
 
@@ -1721,7 +2086,7 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
         addTerminalLine('', '<div class="stage-divider"></div>');
         addTerminalLine('info', `[Stage ${state.currentStage + 1}/${state.scenario.stages.length}] ${stage.name}`);
         addTerminalLine('info', `Objective: ${stage.objective}`);
-        if (stage.question) addTerminalLine('info', `Question: ${escapeHtml(stage.question)}`);
+        if (stage.question) addTerminalLine('info question-line', `Question: ${escapeHtml(stage.question)}`);
         let contextShown = false;
         if (stage.question) {
             const ctxParts = [];
@@ -1734,7 +2099,8 @@ Include "expectedFlags" as an array of exact flags/args that must appear in the 
                 }
             }
             if (ctxParts.length) {
-                addTerminalLine('info', `<strong>Context:</strong> ${escapeHtml(ctxParts.join(' | '))}`);
+                addTerminalLine('info context-line', `<strong>Context:</strong> ${escapeHtml(ctxParts.join(' | '))}`);
+                addTerminalLine('info context-note', 'Note: This is a dummy IP for training (not a real target).');
                 contextShown = true;
             }
         }
@@ -1856,6 +2222,10 @@ You successfully completed all ${state.scenario.stages.length} stages!
             return;
         }
         addTerminalLine('info', `<strong>Answer:</strong> ${escapeHtml(answer)}`);
+        if (stage.commandExplanation) {
+            addTerminalLine('info', `<strong>Explanation:</strong> ${escapeHtml(stage.commandExplanation)}`);
+        }
+        addTerminalLine('success', 'Type this answer to go into the next stage.');
         state.answerRevealed[stageIndex] = true;
     }
 
@@ -1910,6 +2280,7 @@ You successfully completed all ${state.scenario.stages.length} stages!
             localStorage.setItem('hf_token', token);
             addTerminalLine('success', `[✓] Token verified for user: ${result.username}. Token saved.`);
             closeSettings();
+            return;
         } catch (err) {
             addTerminalLine('error', `[!] Verification error: ${err.message || err}`);
         } finally {
@@ -2018,6 +2389,7 @@ You successfully completed all ${state.scenario.stages.length} stages!
     document.getElementById('saveTokenBtn').addEventListener('click', saveSettingsHandler);
     document.getElementById('submitBtn').addEventListener('click', executeCommand);
     document.getElementById('commandInput').addEventListener('keypress', (e)=>{ if (e.key === 'Enter') executeCommand(); });
+    document.querySelector('.input-area').addEventListener('submit', (e)=>{ e.preventDefault(); executeCommand(); });
 
     document.getElementById('commandInput').addEventListener('input', (e)=>{
         const val = e.target.value.toLowerCase();
