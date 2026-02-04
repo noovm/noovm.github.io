@@ -153,11 +153,10 @@ Contributions are welcome. Suggested improvements:
 
 ## Main UI
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d52f4238-ed6e-4e2e-b05e-394b8a40f81e" />
-
-## Adding API or Token in Setting
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/9765e2e7-109d-4f49-9673-e796168ab771" />
-
-<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d3fdadf1-7384-4a0e-83ce-960336fbc570" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/63c5bf9a-cd3c-43cf-a7f2-db3fb578465d" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d06f4a37-f0bd-431d-9fb2-353a335de18d" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/f56c1d18-cc0c-4abe-8f3e-5c6bae422ea3" />
+<img width="1919" height="1049" alt="image" src="https://github.com/user-attachments/assets/73e03478-59ab-4e51-8f36-3d124f2e32ab" />
 
 
 ## FAQ
