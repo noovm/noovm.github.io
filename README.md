@@ -124,17 +124,6 @@ Each scenario is generated as JSON and includes:
 - Tokens are stored in `localStorage` in your browser.
 - They are not encrypted in this prototype.
 
-## Performance Notes
-
-- Large models can be slow (30–40s).
-
-
-## Troubleshooting
-
-- **Token error**: Open Settings and verify your HF token.
-- **Invalid JSON**: Click Regenerate to retry.
-- **Popup “Manage Passwords”**: Autofill is disabled, but some browsers may still suggest saved passwords.
-
 ## Upcoming Features
 
 - Server‑side token handling
@@ -162,13 +151,6 @@ Contributions are welcome. Suggested improvements:
 
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d3fdadf1-7384-4a0e-83ce-960336fbc570" />
 
-
-
-## Credits
-
-- Built with HTML, CSS, and JavaScript
-- Powered by Hugging Face models
-- And me
 
 ## FAQ
 
