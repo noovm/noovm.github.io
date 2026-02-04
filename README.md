@@ -33,9 +33,9 @@ Noo VM uses Hugging Face to generate scenarios. Add your token in the app:
 
 1. Create a free Hugging Face account.
 2. Go to [[https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)]
-3. Click **New token**.
-4. Click **Read**.
-5. Click **Create Token**.
+3. Click `**New token**.`
+4. Click `**Read**.`
+5. Click `**Create Token**.`
 6. Copy the token (starts with `hf_`).
 7. Open Noo VM, click **Settings**, paste the token, and click **Save Token**.
 
