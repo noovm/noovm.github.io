@@ -163,9 +163,6 @@ Contributions are welcome. Suggested improvements:
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d3fdadf1-7384-4a0e-83ce-960336fbc570" />
 
 
-## License
-
-Add your license here.
 
 ## Credits
 
