@@ -1,4 +1,5 @@
-# Noo VM – Interactive Cybersecurity Lab (No‑VM)
+# Noo VM – Interactive Cybersecurity Lab (No‑VM) </br>
+[Visit the NooVM website](https://noovm.github.io/)
 
 Noo VM is a browser‑based cybersecurity training lab that simulates hands‑on scenarios without requiring a virtual machine. Users select an OS, guidance mode, and topic, then walk through progressive stages with commands, hints, and feedback.
 
@@ -155,7 +156,7 @@ Contributions are welcome. Suggested improvements:
 ## Main UI
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d52f4238-ed6e-4e2e-b05e-394b8a40f81e" />
 
-## Adding API or Tocken in Setting
+## Adding API or Token in Setting
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/9765e2e7-109d-4f49-9673-e796168ab771" />
 
 <img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d3fdadf1-7384-4a0e-83ce-960336fbc570" />
