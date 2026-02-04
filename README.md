@@ -32,7 +32,7 @@ Noo VM is built using only free resources: a free Hugging Face API token, free G
 Noo VM uses Hugging Face to generate scenarios. Add your token in the app:
 
 1. Create a free Hugging Face account.
-2. Go to `https://huggingface.co/settings/tokens`
+2. Go to [https://huggingface.co/settings/tokens]((https://huggingface.co/settings/tokens))
 3. Click **New token**.
 4. Click **Read**.
 5. Click **Create Token**.
