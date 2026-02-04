@@ -1,8 +1,8 @@
-# NOVM – Interactive Cybersecurity Lab (No‑VM)
+# Noo VM – Interactive Cybersecurity Lab (No‑VM)
 
-NOVM is a browser‑based cybersecurity training lab that simulates hands‑on scenarios without requiring a virtual machine. Users select an OS, guidance mode, and topic, then walk through progressive stages with commands, hints, and feedback.
+Noo VM is a browser‑based cybersecurity training lab that simulates hands‑on scenarios without requiring a virtual machine. Users select an OS, guidance mode, and topic, then walk through progressive stages with commands, hints, and feedback.
 
-NOVM is built using only free resources: a free Hugging Face API token, free GitHub Pages hosting, and free Cloudflare Workers for the backend.
+Noo VM is built using only free resources: a free Hugging Face API token, free GitHub Pages hosting, and free Cloudflare Workers for the backend.
 
 ## What It Does
 
@@ -27,7 +27,7 @@ NOVM is built using only free resources: a free Hugging Face API token, free Git
 
 ## Add Your Hugging Face API Token
 
-NOVM uses Hugging Face to generate scenarios. Add your token in the app:
+Noo VM uses Hugging Face to generate scenarios. Add your token in the app:
 
 1. Create a free Hugging Face account.
 2. Go to `https://huggingface.co/settings/tokens`
@@ -35,7 +35,7 @@ NOVM uses Hugging Face to generate scenarios. Add your token in the app:
 4. Click **Read**.
 5. Click **Create Token**.
 6. Copy the token (starts with `hf_`).
-7. Open NOVM, click **Settings**, paste the token, and click **Save Token**.
+7. Open Noo VM, click **Settings**, paste the token, and click **Save Token**.
 
 **Note:** The token is stored locally in your browser.
 
@@ -52,7 +52,7 @@ NOVM uses Hugging Face to generate scenarios. Add your token in the app:
 
 ## Backend (Cloudflare Workers)
 
-NOVM uses Cloudflare Workers as a lightweight backend proxy for AI requests.
+Noo VM uses Cloudflare Workers as a lightweight backend proxy for AI requests.
 
 **How it works:**
 
@@ -173,7 +173,7 @@ Add your license here.
 ## FAQ
 
 **Is a VM required?**  
-No. NOVM simulates training without a VM.
+No. Noo VM simulates training without a VM.
 
 **Can I use my own model?**  
 No, currently you can only use `openai-gpt-oss-120b`
