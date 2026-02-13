@@ -130,25 +130,13 @@ Each scenario is generated as JSON and includes:
 ## Token Storage
 
 - Tokens are stored in `localStorage` in your browser.
-- They are not encrypted in this prototype.
 
 ## Upcoming Features
-
-- Server‑side token handling
-- Scenario caching
 - Downloadable reports
 - Export to PDF
-- Custom templates per topic
 
 ## Contributing
-
-Contributions are welcome. Suggested improvements:
-
-- Add new topics and section lists
-- Improve prompt quality
-- Add more helpful hints
-- Fix UI issues and accessibility
-
+Contributions are welcome. 
 ## Screenshots</div>
 
 ## Main UI
