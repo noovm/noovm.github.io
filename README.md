@@ -153,7 +153,7 @@ Contributions are welcome.
 No. Noo VM simulates training without a VM.
 
 **Can I use my own model?**  
-No, currently you can only use `openai-gpt-oss-120b`
+No, currently you can only use hugging face free `openai-gpt-oss-120b` model.
 
 **Why is it slow?**  
 openai/gpt-oss-120b model take time to generate structured JSON.
